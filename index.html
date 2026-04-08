@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GesturnoS - Ley 40 Horas 2026</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #1a3a52;
+            --secondary: #d4a574;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warn: #f39c12;
+            --danger: #c0392b;
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --border: #2d3748;
+            --text: #ecf0f1;
+            --text-dim: #95a5a6;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #1a2332 100%);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+        }
+        .sidebar {
+            background: var(--primary);
+            border-right: 2px solid var(--secondary);
+            padding: 24px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .nav { flex: 1; }
+        .nav-section { margin-bottom: 32px; }
+        .nav-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .nav-item {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background: transparent;
+            border: none;
+            border-left: 3px solid transparent;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-align: left;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-left-color: var(--secondary);
+        }
+        .nav-item.active {
+            background: rgba(212, 165, 116, 0.15);
+            border-left-color: var(--secondary);
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        .main {
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(90deg, var(--primary) 0%, rgba(26, 58, 82, 0.8) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 28px; color: var(--secondary); margin-bottom: 4px; }
+        .header p { font-size: 13px; color: var(--text-dim); }
+        .header-info { font-size: 13px; color: var(--text-dim); }
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+        .panel { display: none; }
+        .panel.active { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        .panel-header h2 { font-size: 24px; color: var(--secondary); }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .form-group input, .form-group select {
+            padding: 12px 14px;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.1);
+        }
+        .filter-section { margin-bottom: 24px; }
+        .filter-section label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .filter-section select {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px 12px;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .checkbox-label:hover { background: rgba(212, 165, 116, 0.1); }
+        .checkbox-label input[type="checkbox"] {
+            accent-color: var(--secondary);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .checkbox-label span { font-size: 14px; color: var(--text); flex: 1; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        .btn-primary:hover {
+            background: #e5b889;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        }
+        .btn-secondary {
+            background: var(--primary);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+        .btn-secondary:hover { background: rgba(212, 165, 116, 0.1); }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .btn-small { padding: 8px 12px; font-size: 12px; }
+        .table-wrapper {
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead {
+            background: rgba(26, 58, 82, 0.8);
+            position: sticky;
+            top: 0;
+        }
+        th {
+            padding: 14px;
+            text-align: left;
+            color: var(--secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        tbody tr:hover { background: rgba(212, 165, 116, 0.05); }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--surface);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-header span { font-size: 18px; font-weight: 600; color: var(--secondary); }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .modal-close:hover { color: var(--text); }
+        .modal form { padding: 24px; }
+        .form-section {
+            padding: 20px;
+            background: rgba(26, 58, 82, 0.3);
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .form-section h3 {
+            color: var(--secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: var(--primary);
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        .card:hover {
+            border-color: var(--secondary);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.1);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 12px;
+        }
+        .card p {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .alert {
+            padding: 16px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+        .alert-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success);
+            border-left-color: var(--success);
+        }
+        ul { list-style: none; }
+        ul li { margin: 6px 0; color: var(--text); }
+        ul li:before { content: "✓ "; color: var(--secondary); font-weight: bold; margin-right: 8px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">⚙️ GesturnoS v2</div>
+            <nav class="nav">
+                <div class="nav-section">
+                    <div class="nav-title">Administración</div>
+                    <button class="nav-item active" onclick="App.showPanel('empresas')">📋 Empresas</button>
+                    <button class="nav-item" onclick="App.showPanel('personal')">👥 Personal</button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Operación</div>
+                    <button class="nav-item" onclick="App.showPanel('turnos')">📅 Generar Turnos</button>
+                    <button class="nav-item" onclick="App.showPanel('reportes')">📊 Reportes</button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Consultas</div>
+                    <button class="nav-item" onclick="App.showPanel('calculos')">💰 Cálculos Legales</button>
+                    <button class="nav-item" onclick="App.showPanel('normativa')">📖 Normativa</button>
+                </div>
+            </nav>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <div>
+                    <h1 id="pageTitle">Administración de Empresas</h1>
+                    <p id="pageSubtitle"></p>
+                </div>
+                <div class="header-info" id="monthDisplay"></div>
+            </div>
+
+            <div class="content">
+                <!-- EMPRESAS -->
+                <div class="panel active" id="empresas-panel">
+                    <div class="panel-header">
+                        <h2>Administración de Empresas</h2>
+                        <button class="btn btn-primary" onclick="App.openNewCompanyModal()">+ Nueva Empresa</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Empresa</th>
+                                    <th>Ubicación</th>
+                                    <th>Trabajadores</th>
+                                    <th>Creada</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="companiesList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PERSONAL -->
+                <div class="panel" id="personal-panel">
+                    <div class="panel-header">
+                        <h2>Gestión de Personal</h2>
+                        <button class="btn btn-primary" onclick="App.openNewWorkerModal()">+ Nuevo Trabajador</button>
+                    </div>
+                    <div class="filter-section">
+                        <label>Selecciona Empresa:</label>
+                        <select id="selectCompany" onchange="App.loadWorkers()">
+                            <option value="">-- Selecciona empresa --</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>RUT</th>
+                                    <th>Nombre</th>
+                                    <th>Cargo</th>
+                                    <th>Sueldo</th>
+                                    <th>Jornada</th>
+                                    <th>Días/sem</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workersList"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TURNOS -->
+                <div class="panel" id="turnos-panel">
+                    <div class="panel-header">
+                        <h2>Optimizador Inteligente de Turnos</h2>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Empresa</label>
+                            <select id="turnosCompany" onchange="App.loadScheduleConfig()">
+                                <option value="">Selecciona empresa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mes a Programar</label>
+                            <input type="month" id="turnosMonth">
+                        </div>
+                    </div>
+
+                    <div id="scheduleConfig" style="display: none;">
+                        <div class="form-section">
+                            <h3>Configuración de Cobertura Horaria</h3>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Horario de Cobertura Inicio</label>
+                                    <input type="time" id="coverageStart" value="00:00">
+                                </div>
+                                <div class="form-group">
+                                    <label>Horario de Cobertura Fin</label>
+                                    <input type="time" id="coverageEnd" value="23:59">
+                                </div>
+                            </div>
+
+                            <h3 style="margin-top: 24px; margin-bottom: 12px;">Turnos Disponibles</h3>
+                            <div class="checkbox-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="shift-option" value="mañana" checked>
+                                    <span>MAÑANA (08:00 - 15:15, 6:45H)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="shift-option" value="tarde" checked>
+                                    <span>TARDE (15:00 - 22:15, 6:45H)</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" class="shift-option" value="noche" checked>
+                                    <span>NOCHE (22:00 - 08:15, 9:45H)</span>
+                                </label>
+                            </div>
+
+                            <button class="btn btn-success" onclick="App.generateOptimalSchedule()" style="width: 100%; margin-top: 24px;">
+                                ⚡ Generar Horarios Optimizados
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="scheduleResult" style="display: none; margin-top: 32px;"></div>
+                </div>
+
+                <!-- REPORTES -->
+                <div class="panel" id="reportes-panel">
+                    <div class="panel-header">
+                        <h2>Reportes y Documentos</h2>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-title">📄 Avisos de Horas Extras</div>
+                            <p>Documentos legales para trabajadores con horas adicionales</p>
+                            <button class="btn btn-secondary" onclick="alert('Próximamente')">Generar</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">📋 Resumen Mensual</div>
+                            <p>Análisis completo de cumplimiento normativo</p>
+                            <button class="btn btn-secondary" onclick="alert('Próximamente')">Generar</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">💾 Exportar Datos</div>
+                            <p>Descarga toda la información en formato JSON</p>
+                            <button class="btn btn-secondary" onclick="App.exportData()">Descargar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CÁLCULOS -->
+                <div class="panel" id="calculos-panel">
+                    <div class="panel-header">
+                        <h2>Calculadora de Remuneraciones Legales</h2>
+                    </div>
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sueldo Base Mensual</label>
+                                <input type="number" id="calcSalary" placeholder="539000" value="539000">
+                            </div>
+                            <div class="form-group">
+                                <label>Horas Trabajadas en el Mes</label>
+                                <input type="number" id="calcHours" placeholder="168" value="168">
+                            </div>
+                            <div class="form-group">
+                                <label>Jornada Semanal (horas)</label>
+                                <select id="calcJornadaType">
+                                    <option value="40">40 horas</option>
+                                    <option value="42" selected>42 horas (2026)</option>
+                                    <option value="44">44 horas</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="App.calculateLegal()" style="width: 100%;">Calcular Remuneración Total</button>
+                    </div>
+                    <div id="calcResult" style="margin-top: 24px;"></div>
+                </div>
+
+                <!-- NORMATIVA -->
+                <div class="panel" id="normativa-panel">
+                    <div class="panel-header">
+                        <h2>Normativa Ley 40 Horas 2026</h2>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-title">📅 Cronograma Progresivo</div>
+                            <ul>
+                                <li>26 abril 2024: 44 horas ✓</li>
+                                <li>26 abril 2026: 42 horas (próxima)</li>
+                                <li>26 abril 2028: 40 horas (meta)</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">⏰ Restricciones Diarias</div>
+                            <ul>
+                                <li>Máximo 2 horas extras/día</li>
+                                <li>Descanso mínimo 12 horas</li>
+                                <li>Colación: 30 minutos</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">📊 Límites Semanales</div>
+                            <ul>
+                                <li>Máximo 12 horas extras/semana</li>
+                                <li>Total máximo 52 horas/semana</li>
+                                <li>Recargo mínimo 50%</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">💰 IMM 2026 (Base)</div>
+                            <ul>
+                                <li>Adultos: $539.000</li>
+                                <li>Menores/+65: $402.082</li>
+                                <li>Gratificación: 25% anual</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALES -->
+    <div class="modal" id="newCompanyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nueva Empresa</span>
+                <button class="modal-close" onclick="App.closeModal('newCompanyModal')">&times;</button>
+            </div>
+            <form onsubmit="App.addCompany(event)">
+                <div class="form-group">
+                    <label>Nombre de la Empresa *</label>
+                    <input type="text" id="companyName" required>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="companyLocation">
+                </div>
+                <div class="form-group">
+                    <label>Contacto</label>
+                    <input type="text" id="companyContact">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="App.closeModal('newCompanyModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="newWorkerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nuevo Trabajador</span>
+                <button class="modal-close" onclick="App.closeModal('newWorkerModal')">&times;</button>
+            </div>
+            <form onsubmit="App.addWorker(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>RUT *</label>
+                        <input type="text" id="workerRut" placeholder="12345678-9" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre *</label>
+                        <input type="text" id="workerName" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cargo *</label>
+                        <input type="text" id="workerPosition" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sueldo Base *</label>
+                        <input type="number" id="workerSalary" value="539000" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Jornada (40/42/44) *</label>
+                        <select id="workerJornada" required>
+                            <option value="40">40 horas</option>
+                            <option value="42" selected>42 horas</option>
+                            <option value="44">44 horas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Días por semana *</label>
+                        <input type="number" id="workerDays" value="5" min="4" max="6" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Preferencia de Turno</label>
+                        <select id="workerPreference">
+                            <option value="">Sin preferencia</option>
+                            <option value="mañana">Mañana</option>
+                            <option value="tarde">Tarde</option>
+                            <option value="noche">Noche</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Días sin Trabajar (ej: lunes,viernes)</label>
+                        <input type="text" id="workerTimeOff" placeholder="lunes,viernes">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="App.closeModal('newWorkerModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Trabajador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==================== APP ====================
+        class App {
+            static state = { companies: [], workers: {}, currentCompany: null };
+
+            static init() {
+                this.loadState();
+                this.setupNav();
+                this.refreshUI();
+            }
+
+            static loadState() {
+                const saved = localStorage.getItem('gesturnosState');
+                if (saved) {
+                    this.state = JSON.parse(saved);
+                }
+            }
+
+            static saveState() {
+                localStorage.setItem('gesturnosState', JSON.stringify(this.state));
+            }
+
+            static setupNav() {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+                    });
+                });
+            }
+
+            static showPanel(panelName) {
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                document.getElementById(panelName + '-panel').classList.add('active');
+
+                const titles = {
+                    'empresas': 'Administración de Empresas',
+                    'personal': 'Gestión de Personal',
+                    'turnos': 'Optimizador Inteligente de Turnos',
+                    'reportes': 'Reportes y Documentos',
+                    'calculos': 'Calculadora de Remuneraciones',
+                    'normativa': 'Normativa Ley 40 Horas 2026'
+                };
+                document.getElementById('pageTitle').textContent = titles[panelName];
+
+                if (panelName === 'empresas') this.renderCompanies();
+                if (panelName === 'personal') this.loadPersonalPanel();
+                if (panelName === 'turnos') this.loadTurnosPanel();
+            }
+
+            static renderCompanies() {
+                const tbody = document.getElementById('companiesList');
+                if (this.state.companies.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-dim);">No hay empresas. Crea una para comenzar.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = this.state.companies.map(c => `
+                    <tr>
+                        <td><strong>${c.name}</strong></td>
+                        <td>${c.location || '-'}</td>
+                        <td>${(this.state.workers[c.id] || []).length}</td>
+                        <td>${c.created}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-secondary btn-small" onclick="App.selectCompany(${c.id})">Abrir</button>
+                                <button class="btn btn-danger btn-small" onclick="App.deleteCompany(${c.id})">Eliminar</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            static openNewCompanyModal() {
+                this.showModal('newCompanyModal');
+            }
+
+            static addCompany(event) {
+                event.preventDefault();
+                const name = document.getElementById('companyName').value;
+                const location = document.getElementById('companyLocation').value;
+                const contact = document.getElementById('companyContact').value;
+
+                if (!name) {
+                    alert('Nombre requerido');
+                    return;
+                }
+
+                const company = {
+                    id: Date.now(),
+                    name,
+                    location,
+                    contact,
+                    created: new Date().toLocaleDateString('es-CL')
+                };
+
+                this.state.companies.push(company);
+                this.state.workers[company.id] = [];
+                this.saveState();
+
+                this.closeModal('newCompanyModal');
+                document.getElementById('newCompanyModal').querySelector('form').reset();
+                this.renderCompanies();
+            }
+
+            static selectCompany(id) {
+                this.state.currentCompany = id;
+                this.saveState();
+                this.showPanel('personal');
+            }
+
+            static deleteCompany(id) {
+                if (confirm('¿Eliminar empresa y TODOS sus datos?')) {
+                    this.state.companies = this.state.companies.filter(c => c.id !== id);
+                    delete this.state.workers[id];
+                    this.saveState();
+                    this.renderCompanies();
+                }
+            }
+
+            static loadPersonalPanel() {
+                const select = document.getElementById('selectCompany');
+                select.innerHTML = '<option value="">-- Selecciona --</option>' +
+                    this.state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                
+                if (this.state.currentCompany) {
+                    select.value = this.state.currentCompany;
+                    this.loadWorkers();
+                }
+            }
+
+            static loadWorkers() {
+                const companyId = parseInt(document.getElementById('selectCompany').value);
+                if (!companyId) {
+                    document.getElementById('workersList').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-dim);">Selecciona empresa</td></tr>';
+                    return;
+                }
+
+                this.state.currentCompany = companyId;
+                this.saveState();
+
+                const workers = this.state.workers[companyId] || [];
+                const tbody = document.getElementById('workersList');
+
+                if (workers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-dim);">No hay trabajadores</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = workers.map(w => `
+                    <tr>
+                        <td>${w.rut}</td>
+                        <td><strong>${w.name}</strong></td>
+                        <td>${w.position}</td>
+                        <td>$${w.salary.toLocaleString('es-CL')}</td>
+                        <td>${w.jornada}h</td>
+                        <td>${w.days}</td>
+                        <td>
+                            <button class="btn btn-danger btn-small" onclick="App.deleteWorker(${companyId}, ${w.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Cargar en selector de turnos
+                const turnosSelect = document.getElementById('turnosCompany');
+                turnosSelect.innerHTML = '<option value="">Selecciona</option>' +
+                    this.state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            }
+
+            static openNewWorkerModal() {
+                const companyId = document.getElementById('selectCompany').value;
+                if (!companyId) {
+                    alert('Selecciona empresa primero');
+                    return;
+                }
+                this.showModal('newWorkerModal');
+            }
+
+            static addWorker(event) {
+                event.preventDefault();
+                const companyId = parseInt(document.getElementById('selectCompany').value);
+
+                const worker = {
+                    id: Date.now(),
+                    rut: document.getElementById('workerRut').value,
+                    name: document.getElementById('workerName').value,
+                    position: document.getElementById('workerPosition').value,
+                    salary: parseFloat(document.getElementById('workerSalary').value),
+                    jornada: document.getElementById('workerJornada').value,
+                    days: document.getElementById('workerDays').value,
+                    preference: document.getElementById('workerPreference').value,
+                    timeOff: document.getElementById('workerTimeOff').value
+                };
+
+                if (!this.state.workers[companyId]) {
+                    this.state.workers[companyId] = [];
+                }
+
+                this.state.workers[companyId].push(worker);
+                this.saveState();
+
+                this.closeModal('newWorkerModal');
+                document.getElementById('newWorkerModal').querySelector('form').reset();
+                this.loadWorkers();
+            }
+
+            static deleteWorker(companyId, workerId) {
+                if (confirm('¿Eliminar trabajador?')) {
+                    this.state.workers[companyId] = this.state.workers[companyId].filter(w => w.id !== workerId);
+                    this.saveState();
+                    this.loadWorkers();
+                }
+            }
+
+            static loadTurnosPanel() {
+                const select = document.getElementById('turnosCompany');
+                select.innerHTML = '<option value="">Selecciona</option>' +
+                    this.state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                
+                const nextMonth = new Date();
+                nextMonth.setMonth(nextMonth.getMonth() + 1);
+                document.getElementById('turnosMonth').valueAsDate = nextMonth;
+                
+                document.getElementById('scheduleConfig').style.display = 'none';
+                document.getElementById('scheduleResult').style.display = 'none';
+            }
+
+            static loadScheduleConfig() {
+                const companyId = parseInt(document.getElementById('turnosCompany').value);
+                if (!companyId) {
+                    document.getElementById('scheduleConfig').style.display = 'none';
+                    return;
+                }
+                const workers = this.state.workers[companyId] || [];
+                if (workers.length === 0) {
+                    alert('No hay trabajadores en esta empresa');
+                    return;
+                }
+                document.getElementById('scheduleConfig').style.display = 'block';
+            }
+
+            static generateOptimalSchedule() {
+                const companyId = parseInt(document.getElementById('turnosCompany').value);
+                const monthStr = document.getElementById('turnosMonth').value;
+
+                if (!companyId || !monthStr) {
+                    alert('Selecciona empresa y mes');
+                    return;
+                }
+
+                const workers = this.state.workers[companyId] || [];
+                if (workers.length === 0) {
+                    alert('No hay trabajadores');
+                    return;
+                }
+
+                const [year, month] = monthStr.split('-').map(Number);
+                const company = this.state.companies.find(c => c.id === companyId);
+                const selectedShifts = Array.from(document.querySelectorAll('.shift-option:checked')).map(el => el.value);
+
+                if (selectedShifts.length === 0) {
+                    alert('Selecciona al menos un turno');
+                    return;
+                }
+
+                // Simulación básica
+                let html = `<div class="alert alert-success">✓ Turnos generados para ${monthStr}</div>`;
+                html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px;">';
+
+                workers.forEach(w => {
+                    const ordinaryHours = parseInt(w.jornada) * 4.33;
+                    html += `
+                        <div class="card">
+                            <div style="color: var(--secondary); font-weight: 600;">${w.name}</div>
+                            <div style="margin-top: 12px; font-size: 12px; color: var(--text-dim);">
+                                <p>Horas: ${ordinaryHours.toFixed(1)}</p>
+                                <p>Cargo: ${w.position}</p>
+                                <p>Preferencia: ${w.preference || 'Sin preferencia'}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                html += '<div style="margin-top: 24px;"><button class="btn btn-secondary" onclick="alert(\'Reportelistado para descargar\')">📄 Ver Detalles</button></div>';
+
+                document.getElementById('scheduleResult').innerHTML = html;
+                document.getElementById('scheduleResult').style.display = 'block';
+            }
+
+            static calculateLegal() {
+                const salary = parseFloat(document.getElementById('calcSalary').value);
+                const hours = parseFloat(document.getElementById('calcHours').value);
+                const jornada = parseInt(document.getElementById('calcJornadaType').value);
+
+                if (!salary || !hours) {
+                    alert('Completa los campos');
+                    return;
+                }
+
+                const ordinaryHours = jornada * 4.33;
+                const extraHours = Math.max(0, hours - ordinaryHours);
+                const hourValue = salary / 30 / (jornada / 5);
+                const extraCost = extraHours * (hourValue * 1.5);
+
+                let html = `
+                    <div class="alert alert-success">Cálculo Legal Ley 21.561</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                        <div class="card">
+                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">$${salary.toLocaleString('es-CL')}</div>
+                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Sueldo Base</div>
+                        </div>
+                        <div class="card">
+                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">${extraHours.toFixed(1)}</div>
+                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Horas Extras</div>
+                        </div>
+                        <div class="card">
+                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">$${extraCost.toLocaleString('es-CL')}</div>
+                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Costo Extras</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px; padding: 16px; background: var(--primary); border-radius: 4px; border-left: 4px solid var(--secondary);">
+                        <div style="font-size: 14px; color: var(--text-dim); margin-bottom: 8px;">Total Mensual</div>
+                        <div style="font-size: 28px; font-weight: bold; color: var(--secondary);">$${(salary + extraCost).toLocaleString('es-CL')}</div>
+                    </div>
+                `;
+
+                document.getElementById('calcResult').innerHTML = html;
+            }
+
+            static exportData() {
+                const json = JSON.stringify(this.state, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'gesturnost-' + new Date().toISOString().split('T')[0] + '.json';
+                a.click();
+            }
+
+            static showModal(modalId) {
+                document.getElementById(modalId).classList.add('active');
+            }
+
+            static closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            }
+
+            static refreshUI() {
+                document.getElementById('monthDisplay').textContent = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+                this.renderCompanies();
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+    </script>
+</body>
+</html>
