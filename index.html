@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Turnos - Ley 40 Horas 2026</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">⚙️ GesturnoS</div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Gestión</div>
+                <button class="nav-item active" onclick="App.showPanel('empresas')">Empresas</button>
+                <button class="nav-item" onclick="App.showPanel('personal')">Personal</button>
+                <button class="nav-item" onclick="App.showPanel('turnos')">Generar Turnos</button>
+                <button class="nav-item" onclick="App.showPanel('reportes')">Reportes</button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Consultas</div>
+                <button class="nav-item" onclick="App.showPanel('calculos')">Cálculos Legales</button>
+                <button class="nav-item" onclick="App.showPanel('normativa')">Normativa 2026</button>
+            </div>
+            
+            <div class="nav-section" style="margin-top: auto;">
+                <div class="nav-title">Archivo</div>
+                <button class="nav-item" onclick="App.exportData()">Exportar</button>
+                <button class="nav-item" onclick="App.importData()">Importar</button>
+            </div>
+        </div>
+        
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <div class="header">
+                <div>
+                    <div class="header-title" id="pageTitle">Empresas</div>
+                </div>
+                <div class="header-info">
+                    <span id="monthDisplay"></span>
+                    <span id="userDisplay">v1.0</span>
+                </div>
+            </div>
+            
+            <div class="content" id="mainContent">
+                <!-- EMPRESAS -->
+                <div class="panel active" id="empresas-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 20px; color: var(--secondary);">Administración de Empresas</h2>
+                        <button class="btn btn-primary" onclick="App.showModal('newCompanyModal')">+ Nueva Empresa</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table id="companiesTable">
+                            <thead>
+                                <tr>
+                                    <th>Nombre Empresa</th>
+                                    <th>Ubicación</th>
+                                    <th>Personal</th>
+                                    <th>Creado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="companiesList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- PERSONAL -->
+                <div class="panel" id="personal-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 20px; color: var(--secondary);">Gestión de Personal</h2>
+                        <button class="btn btn-primary" onclick="App.openNewWorkerModal()">+ Nuevo Trabajador</button>
+                    </div>
+                    <div id="companySelector" style="margin-bottom: 24px;">
+                        <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-dim); text-transform: uppercase; font-weight: 600;">Selecciona Empresa</label>
+                        <select id="selectCompany" onchange="App.loadWorkers()" style="width: 100%; max-width: 400px;">
+                            <option value="">-- Selecciona empresa --</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>RUT</th>
+                                    <th>Nombre</th>
+                                    <th>Cargo</th>
+                                    <th>Renta</th>
+                                    <th>Jornada</th>
+                                    <th>Días/Semana</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workersList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- TURNOS -->
+                <div class="panel" id="turnos-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Optimizador de Turnos</h2>
+                    <div class="grid-2">
+                        <div>
+                            <div class="form-group">
+                                <label>Empresa</label>
+                                <select id="turnosCompany" onchange="App.loadScheduleConfig()">
+                                    <option value="">Selecciona empresa</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="form-group">
+                                <label>Mes a Programar</label>
+                                <input type="month" id="turnosMonth">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="scheduleConfig" style="display: none; margin-top: 24px; padding: 20px; background: var(--primary); border-radius: 4px;">
+                        <h3 style="color: var(--secondary); margin-bottom: 16px;">Configuración de Horarios</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Horario de Cobertura Inicio</label>
+                                <input type="time" id="coverageStart" value="00:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Horario de Cobertura Fin</label>
+                                <input type="time" id="coverageEnd" value="23:59">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Turnos Disponibles</label>
+                            <div id="shiftsConfig"></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="App.generateOptimalSchedule()" style="margin-top: 16px;">Generar Horarios Optimizados</button>
+                    </div>
+                    <div id="scheduleResult" style="display: none; margin-top: 24px;"></div>
+                </div>
+                
+                <!-- REPORTES -->
+                <div class="panel" id="reportes-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Reportes y Documentos</h2>
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-title">Resumen del Mes</div>
+                            <div style="font-size: 13px; line-height: 1.8; color: var(--text-dim);">
+                                <p>Total horas trabajadas por empleado</p>
+                                <p>Distribución de turnos</p>
+                                <p>Cumplimiento normativo</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 16px; width: 100%;" onclick="App.generateReport('monthly')">Generar Resumen</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Avisos a Personal</div>
+                            <div style="font-size: 13px; line-height: 1.8; color: var(--text-dim);">
+                                <p>Cartas individuales de horarios</p>
+                                <p>Notificación de cambios</p>
+                                <p>Firma electrónica</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 16px; width: 100%;" onclick="App.generateReport('notices')">Generar Avisos</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Pactos de Horas Extras</div>
+                            <div style="font-size: 13px; line-height: 1.8; color: var(--text-dim);">
+                                <p>Cálculo de sobretiempo legal</p>
+                                <p>Recargo mínimo 50%</p>
+                                <p>Documento firmable</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 16px; width: 100%;" onclick="App.generateReport('extraHours')">Generar Pactos</button>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">Análisis de Cumplimiento</div>
+                            <div style="font-size: 13px; line-height: 1.8; color: var(--text-dim);">
+                                <p>Verificación Ley 40 Horas</p>
+                                <p>Alertas de infracciones</p>
+                                <p>Recomendaciones legales</p>
+                            </div>
+                            <button class="btn btn-secondary btn-small" style="margin-top: 16px; width: 100%;" onclick="App.generateReport('compliance')">Analizar</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CÁLCULOS -->
+                <div class="panel" id="calculos-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Calculadora de Remuneraciones 2026</h2>
+                    <div class="alert alert-info">
+                        Calcula automáticamente horas extras, gratificación legal y cumplimiento normativo según Ley 21.561
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>RUT Trabajador</label>
+                            <input type="text" id="calcRut" placeholder="12345678-9">
+                        </div>
+                        <div class="form-group">
+                            <label>Sueldo Base</label>
+                            <input type="number" id="calcSalary" placeholder="539000">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Horas Trabajadas (en el mes)</label>
+                            <input type="number" id="calcHours" placeholder="168">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo de Jornada</label>
+                            <select id="calcJornadaType">
+                                <option value="42">42 Horas Semanales</option>
+                                <option value="40">40 Horas Semanales</option>
+                                <option value="44">44 Horas Semanales</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="App.calculateLegal()" style="margin-top: 16px; width: 100%;">Calcular Remuneración</button>
+                    <div id="calcResult" style="margin-top: 24px;"></div>
+                </div>
+                
+                <!-- NORMATIVA -->
+                <div class="panel" id="normativa-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Normativa Ley 40 Horas 2026</h2>
+                    <div class="alert alert-info">
+                        Información clave sobre la implementación de la Ley 21.561 en Chile para 2026
+                    </div>
+                    <div style="display: grid; gap: 24px;">
+                        <div class="card">
+                            <div class="card-title">📅 Cronograma de Reducción</div>
+                            <table style="width: 100%; font-size: 13px;">
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                        <strong>26 abril 2024</strong><br>
+                                        <span style="color: var(--text-dim);">44 horas (Completada)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid var(--border);">
+                                        <strong>26 abril 2026</strong><br>
+                                        <span style="color: var(--secondary);">42 horas (Próxima)</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;">
+                                        <strong>26 abril 2028</strong><br>
+                                        <span style="color: var(--text-dim);">40 horas (Meta final)</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">⏰ Límites de Horas Extras</div>
+                            <div style="font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+                                <p>✓ Máximo diario: <strong>2 horas</strong></p>
+                                <p>✓ Máximo semanal: <strong>12 horas</strong></p>
+                                <p>✓ Recargo mínimo: <strong>50% del valor hora</strong></p>
+                                <p>✓ Suma total semana: No exceder <strong>52 horas</strong></p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">💰 Ingreso Mínimo Mensual 2026</div>
+                            <div style="font-size: 13px; color: var(--text-dim);">
+                                <p>Mayores de 18 y menores de 65:<br>
+                                <strong style="color: var(--secondary); font-size: 18px;">$539.000</strong></p>
+                                <p style="margin-top: 12px;">Menores de 18 y mayores de 65:<br>
+                                <strong style="color: var(--secondary); font-size: 18px;">$402.082</strong></p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">🏢 Descanso Obligatorio</div>
+                            <div style="font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+                                <p>✓ Descanso diario: Mínimo <strong>12 horas</strong></p>
+                                <p>✓ Colación: Mínimo <strong>30 minutos</strong></p>
+                                <p>✓ Descanso semanal: <strong>1 día cada 6 trabajados</strong></p>
+                                <p>✓ 2 domingos libres al mes (comercio y servicios)</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-title">👨‍👩‍👧 Banda Horaria para Cuidadores</div>
+                            <div style="font-size: 13px; color: var(--text-dim); line-height: 1.8;">
+                                <p>Padres/cuidadores de menores de 12 años tienen derecho a:</p>
+                                <p style="margin-top: 8px;"><strong>Banda de 2 horas totales</strong> para adelantar o retrasar entrada</p>
+                                <p style="color: var(--warn);">Excepto en turnos donde sea indispensable</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODALES -->
+    <!-- Nueva Empresa -->
+    <div class="modal" id="newCompanyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nueva Empresa</span>
+                <button class="close-btn" onclick="App.closeModal('newCompanyModal')">&times;</button>
+            </div>
+            <form onsubmit="App.addCompany(event)">
+                <div class="form-group">
+                    <label>Nombre Empresa</label>
+                    <input type="text" id="companyName" required>
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" id="companyLocation" placeholder="Santiago, Región Metropolitana">
+                </div>
+                <div class="form-group">
+                    <label>Contacto</label>
+                    <input type="email" id="companyContact">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="App.closeModal('newCompanyModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Empresa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Nuevo Trabajador -->
+    <div class="modal" id="newWorkerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Nuevo Trabajador</span>
+                <button class="close-btn" onclick="App.closeModal('newWorkerModal')">&times;</button>
+            </div>
+            <form onsubmit="App.addWorker(event)">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>RUT</label>
+                        <input type="text" id="workerRut" placeholder="12345678-9" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre</label>
+                        <input type="text" id="workerName" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Cargo</label>
+                        <input type="text" id="workerPosition" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Renta Mensual</label>
+                        <input type="number" id="workerSalary" placeholder="539000" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Jornada</label>
+                        <select id="workerJornada" required>
+                            <option value="">Selecciona</option>
+                            <option value="42">42 Horas (2026)</option>
+                            <option value="40">40 Horas</option>
+                            <option value="44">44 Horas</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Días a la Semana</label>
+                        <select id="workerDays" required>
+                            <option value="">Selecciona</option>
+                            <option value="5">5 Días</option>
+                            <option value="6">6 Días</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preferencias de Turno</label>
+                    <input type="text" id="workerPreference" placeholder="Mañana, Tarde, Noche">
+                </div>
+                <div class="form-group">
+                    <label>Tiempo Fuera (vacaciones, licencias)</label>
+                    <input type="number" id="workerTimeOff" placeholder="0 días">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="App.closeModal('newWorkerModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Agregar Trabajador</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="storage.js"></script>
+    <script src="scheduler.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
