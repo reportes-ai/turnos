@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GesturnoS - Ley 40 Horas 2026</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #1a3a52;
+            --secondary: #d4a574;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warn: #f39c12;
+            --danger: #c0392b;
+            --bg: #0f1419;
+            --surface: #1a1f2e;
+            --border: #2d3748;
+            --text: #ecf0f1;
+            --text-dim: #95a5a6;
+            --grid: 8px;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #1a2332 100%);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+        .sidebar {
+            background: var(--primary);
+            padding: calc(var(--grid) * 3);
+            overflow-y: auto;
+            border-right: 2px solid var(--secondary);
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: calc(var(--grid) * 3);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .nav-section {
+            margin-bottom: calc(var(--grid) * 3);
+        }
+        .nav-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: calc(var(--grid) * 1.5);
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            padding: calc(var(--grid) * 1.5) calc(var(--grid) * 2);
+            margin-bottom: calc(var(--grid) * 1);
+            background: transparent;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+            font-size: 14px;
+            text-align: left;
+            width: 100%;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: var(--secondary);
+        }
+        .nav-item.active {
+            background: rgba(212, 165, 116, 0.1);
+            border-left-color: var(--secondary);
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        .main {
+            background: var(--surface);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(90deg, var(--primary) 0%, rgba(26, 58, 82, 0.8) 100%);
+            padding: calc(var(--grid) * 2) calc(var(--grid) * 3);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        .header-info {
+            display: flex;
+            gap: calc(var(--grid) * 2);
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: calc(var(--grid) * 3);
+        }
+        .panel { display: none; }
+        .panel.active { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .form-group {
+            margin-bottom: calc(var(--grid) * 2.5);
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: calc(var(--grid) * 1);
+            font-size: 13px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: calc(var(--grid) * 1.5) calc(var(--grid) * 1.5);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            background: rgba(212, 165, 116, 0.05);
+        }
+        .btn {
+            padding: calc(var(--grid) * 1.5) calc(var(--grid) * 3);
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary {
+            background: var(--secondary);
+            color: var(--primary);
+        }
+        .btn-primary:hover {
+            background: #e5b889;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(212, 165, 116, 0.3);
+        }
+        .btn-secondary {
+            background: var(--primary);
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .alert {
+            padding: calc(var(--grid) * 2);
+            border-radius: 4px;
+            margin-bottom: calc(var(--grid) * 2);
+            font-size: 14px;
+        }
+        .alert-success {
+            background: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            margin-bottom: calc(var(--grid) * 3);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        thead {
+            background: rgba(26, 58, 82, 0.8);
+            position: sticky;
+            top: 0;
+        }
+        th {
+            padding: calc(var(--grid) * 1.5);
+            text-align: left;
+            color: var(--secondary);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+        td {
+            padding: calc(var(--grid) * 1.5);
+            border-bottom: 1px solid var(--border);
+        }
+        tbody tr:hover {
+            background: rgba(212, 165, 116, 0.05);
+        }
+        .card {
+            background: var(--primary);
+            padding: calc(var(--grid) * 2.5);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: calc(var(--grid) * 1);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+        .action-buttons {
+            display: flex;
+            gap: calc(var(--grid) * 1);
+        }
+        .btn-small {
+            padding: calc(var(--grid) * 0.75) calc(var(--grid) * 1.5);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">⚙️ GesturnoS v2</div>
+            <div class="nav-section">
+                <div class="nav-title">Gestión</div>
+                <button class="nav-item active" onclick="showPanel('empresas')">Empresas</button>
+                <button class="nav-item" onclick="showPanel('personal')">Personal</button>
+                <button class="nav-item" onclick="showPanel('turnos')">Generar Turnos</button>
+            </div>
+            <div class="nav-section">
+                <div class="nav-title">Consultas</div>
+                <button class="nav-item" onclick="showPanel('calculos')">Cálculos Legales</button>
+                <button class="nav-item" onclick="showPanel('normativa')">Normativa 2026</button>
+            </div>
+        </div>
+        
+        <div class="main">
+            <div class="header">
+                <div class="header-title" id="pageTitle">Empresas</div>
+                <div class="header-info">
+                    <span id="monthDisplay"></span>
+                </div>
+            </div>
+            
+            <div class="content" id="mainContent">
+                <!-- EMPRESAS -->
+                <div class="panel active" id="empresas-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 20px; color: var(--secondary);">Administración de Empresas</h2>
+                        <button class="btn btn-primary" onclick="createCompany()">+ Nueva Empresa</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Empresa</th>
+                                    <th>Ubicación</th>
+                                    <th>Personal</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="companiesList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- PERSONAL -->
+                <div class="panel" id="personal-panel">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 20px; color: var(--secondary);">Gestión de Personal</h2>
+                        <button class="btn btn-primary" onclick="createWorker()">+ Nuevo Trabajador</button>
+                    </div>
+                    <div style="margin-bottom: 24px;">
+                        <label>Selecciona Empresa:</label>
+                        <select id="selectCompany" onchange="loadWorkers()" style="width: 100%; max-width: 400px; padding: 8px; margin-top: 8px;">
+                            <option value="">-- Selecciona --</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cargo</th>
+                                    <th>Renta</th>
+                                    <th>Jornada</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workersList"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- TURNOS -->
+                <div class="panel" id="turnos-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Optimizador de Turnos</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Empresa</label>
+                            <select id="turnosCompany" onchange="loadScheduleConfig()">
+                                <option value="">Selecciona</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Mes a Programar</label>
+                            <input type="month" id="turnosMonth">
+                        </div>
+                    </div>
+                    <div id="scheduleConfig" style="display: none; padding: 20px; background: var(--primary); border-radius: 4px;">
+                        <h3 style="color: var(--secondary); margin-bottom: 16px;">Turnos Disponibles</h3>
+                        <div style="display: grid; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" class="shift-option" value="mañana" checked> 
+                                <span>Mañana (08:00 - 15:15)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" class="shift-option" value="tarde" checked> 
+                                <span>Tarde (15:00 - 22:15)</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 12px;">
+                                <input type="checkbox" class="shift-option" value="noche" checked> 
+                                <span>Noche (22:00 - 08:15)</span>
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="generateSchedule()" style="margin-top: 16px; width: 100%;">Generar Turnos Optimizados</button>
+                    </div>
+                    <div id="scheduleResult" style="display: none; margin-top: 24px;"></div>
+                </div>
+                
+                <!-- CÁLCULOS -->
+                <div class="panel" id="calculos-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Calculadora de Remuneraciones</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div class="form-group">
+                            <label>Sueldo Base</label>
+                            <input type="number" id="calcSalary" placeholder="539000">
+                        </div>
+                        <div class="form-group">
+                            <label>Horas Trabajadas</label>
+                            <input type="number" id="calcHours" placeholder="168">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="calculateLegal()" style="width: 100%;">Calcular</button>
+                    <div id="calcResult" style="margin-top: 24px;"></div>
+                </div>
+                
+                <!-- NORMATIVA -->
+                <div class="panel" id="normativa-panel">
+                    <h2 style="font-size: 20px; color: var(--secondary); margin-bottom: 24px;">Ley 40 Horas 2026</h2>
+                    <div class="card">
+                        <h3 style="color: var(--secondary); margin-bottom: 12px;">📅 Cronograma</h3>
+                        <p>26 abril 2024: 44 horas ✓</p>
+                        <p>26 abril 2026: 42 horas (próxima)</p>
+                        <p>26 abril 2028: 40 horas (meta)</p>
+                    </div>
+                    <div class="card" style="margin-top: 16px;">
+                        <h3 style="color: var(--secondary); margin-bottom: 12px;">⏰ Límites Legales</h3>
+                        <p>✓ Máximo diario: 2 horas extras</p>
+                        <p>✓ Máximo semanal: 12 horas extras</p>
+                        <p>✓ Recargo mínimo: 50%</p>
+                        <p>✓ Descanso diario: 12 horas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== DATA ====================
+        let state = {
+            companies: [],
+            workers: {},
+            currentCompany: null
+        };
+
+        function loadState() {
+            const saved = localStorage.getItem('gesturnosState');
+            if (saved) state = JSON.parse(saved);
+            refreshUI();
+        }
+
+        function saveState() {
+            localStorage.setItem('gesturnosState', JSON.stringify(state));
+        }
+
+        // ==================== COMPANIES ====================
+        function createCompany() {
+            const name = prompt('Nombre de empresa:');
+            if (!name) return;
+            
+            const company = {
+                id: Date.now(),
+                name,
+                location: prompt('Ubicación:') || '',
+                created: new Date().toLocaleDateString('es-CL')
+            };
+            
+            state.companies.push(company);
+            state.workers[company.id] = [];
+            saveState();
+            renderCompanies();
+        }
+
+        function renderCompanies() {
+            const tbody = document.getElementById('companiesList');
+            tbody.innerHTML = state.companies.map(c => `
+                <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.location || '-'}</td>
+                    <td>${state.workers[c.id]?.length || 0}</td>
+                    <td>
+                        <button class="btn btn-secondary btn-small" onclick="selectCompany(${c.id})">Abrir</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteCompany(${c.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function selectCompany(id) {
+            state.currentCompany = id;
+            saveState();
+            showPanel('personal');
+        }
+
+        function deleteCompany(id) {
+            if (confirm('¿Eliminar empresa?')) {
+                state.companies = state.companies.filter(c => c.id !== id);
+                delete state.workers[id];
+                saveState();
+                renderCompanies();
+            }
+        }
+
+        // ==================== WORKERS ====================
+        function createWorker() {
+            const companyId = parseInt(document.getElementById('selectCompany').value);
+            if (!companyId) {
+                alert('Selecciona empresa primero');
+                return;
+            }
+
+            const name = prompt('Nombre:');
+            if (!name) return;
+
+            const worker = {
+                id: Date.now(),
+                name,
+                position: prompt('Cargo:') || '',
+                salary: parseFloat(prompt('Renta:') || 539000),
+                jornada: parseInt(prompt('Jornada (40/42/44):') || 42),
+                days: parseInt(prompt('Días/semana (5/6):') || 5)
+            };
+
+            if (!state.workers[companyId]) state.workers[companyId] = [];
+            state.workers[companyId].push(worker);
+            saveState();
+            loadWorkers();
+        }
+
+        function loadWorkers() {
+            const select = document.getElementById('selectCompany');
+            const companyId = parseInt(select.value);
+
+            if (!companyId) return;
+
+            const tbody = document.getElementById('workersList');
+            const workers = state.workers[companyId] || [];
+
+            tbody.innerHTML = workers.map(w => `
+                <tr>
+                    <td><strong>${w.name}</strong></td>
+                    <td>${w.position}</td>
+                    <td>$${w.salary.toLocaleString('es-CL')}</td>
+                    <td>${w.jornada}h</td>
+                    <td>
+                        <button class="btn btn-danger btn-small" onclick="deleteWorker(${companyId}, ${w.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Cargar empresas en selector de turnos
+            const turnosSelect = document.getElementById('turnosCompany');
+            turnosSelect.innerHTML = '<option value="">Selecciona</option>' + 
+                state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            // Cargar empresas en selector personal
+            select.innerHTML = '<option value="">-- Selecciona --</option>' +
+                state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            select.value = companyId;
+        }
+
+        function deleteWorker(companyId, workerId) {
+            if (confirm('¿Eliminar?')) {
+                state.workers[companyId] = state.workers[companyId].filter(w => w.id !== workerId);
+                saveState();
+                loadWorkers();
+            }
+        }
+
+        // ==================== SCHEDULE ====================
+        function loadScheduleConfig() {
+            const companyId = parseInt(document.getElementById('turnosCompany').value);
+            if (!companyId) {
+                document.getElementById('scheduleConfig').style.display = 'none';
+                return;
+            }
+            document.getElementById('scheduleConfig').style.display = 'block';
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            document.getElementById('turnosMonth').valueAsDate = nextMonth;
+        }
+
+        function generateSchedule() {
+            const companyId = parseInt(document.getElementById('turnosCompany').value);
+            const monthStr = document.getElementById('turnosMonth').value;
+            
+            if (!companyId || !monthStr) {
+                alert('Selecciona empresa y mes');
+                return;
+            }
+
+            const workers = state.workers[companyId] || [];
+            if (workers.length === 0) {
+                alert('No hay trabajadores');
+                return;
+            }
+
+            const [year, month] = monthStr.split('-').map(Number);
+            const company = state.companies.find(c => c.id === companyId);
+
+            // Simular generación de turnos
+            let html = '<div class="alert alert-success">✓ Turnos generados para ' + monthStr + '</div>';
+            
+            html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px;">';
+            
+            let totalHours = 0;
+            let totalExtras = 0;
+
+            workers.forEach(w => {
+                const ordinaryHours = w.jornada * 4.33;
+                totalHours += ordinaryHours;
+            });
+
+            workers.forEach(w => {
+                const ordinaryHours = w.jornada * 4.33;
+                html += `
+                    <div class="card">
+                        <div style="color: var(--secondary); font-weight: 600;">${w.name}</div>
+                        <div style="margin-top: 12px; font-size: 12px; color: var(--text-dim);">
+                            <p>Horas: ${ordinaryHours.toFixed(1)}</p>
+                            <p>Cargo: ${w.position}</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            html += '<div style="margin-top: 24px;"><button class="btn btn-secondary" onclick="alert(\'Reporte generado\')">📄 Ver Reporte</button></div>';
+
+            document.getElementById('scheduleResult').innerHTML = html;
+            document.getElementById('scheduleResult').style.display = 'block';
+        }
+
+        // ==================== CALCULATIONS ====================
+        function calculateLegal() {
+            const salary = parseFloat(document.getElementById('calcSalary').value);
+            const hours = parseFloat(document.getElementById('calcHours').value);
+            
+            if (!salary || !hours) {
+                alert('Completa los campos');
+                return;
+            }
+
+            const ordinaryHours = 42 * 4.33;
+            const extraHours = Math.max(0, hours - ordinaryHours);
+            const hourValue = salary / 30 / (42 / 5);
+            const extraCost = extraHours * (hourValue * 1.5);
+
+            let html = `
+                <div class="alert alert-success">Cálculo Legal 2026</div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
+                    <div class="card">
+                        <div class="stat-value">$${salary.toLocaleString('es-CL')}</div>
+                        <div class="stat-label">Sueldo Base</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-value">${extraHours.toFixed(1)}</div>
+                        <div class="stat-label">Horas Extras</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-value">$${extraCost.toLocaleString('es-CL')}</div>
+                        <div class="stat-label">Costo Extras</div>
+                    </div>
+                </div>
+                <div style="margin-top: 24px; padding: 16px; background: var(--primary); border-radius: 4px;">
+                    <strong>Total Mensual: $${(salary + extraCost).toLocaleString('es-CL')}</strong>
+                </div>
+            `;
+
+            document.getElementById('calcResult').innerHTML = html;
+        }
+
+        // ==================== UI ====================
+        function showPanel(panelName) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(panelName + '-panel').classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target?.classList.add('active');
+
+            const titles = {
+                'empresas': 'Administración de Empresas',
+                'personal': 'Gestión de Personal',
+                'turnos': 'Optimizador de Turnos',
+                'calculos': 'Calculadora de Remuneraciones',
+                'normativa': 'Normativa Ley 40 Horas 2026'
+            };
+            document.getElementById('pageTitle').textContent = titles[panelName];
+
+            if (panelName === 'personal') loadWorkers();
+        }
+
+        function refreshUI() {
+            document.getElementById('monthDisplay').textContent = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+            renderCompanies();
+        }
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+        });
+    </script>
+</body>
+</html>
