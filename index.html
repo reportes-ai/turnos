@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GesturnoS v6 — Ley 40 Horas 2026 (Optimizador Total)</title>
+<title>GesturnoS v7 — Ley 40 Horas 2026 (Optimizador Total)</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -32,19 +32,18 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height
 .field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
 .btn{padding:8px 16px;border:none;border-radius:2px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
 .btn-primary{background:var(--ink);color:var(--paper)}.btn-primary:hover{background:var(--slate)}
-.btn-gold{background:var(--gold);color:white}.btn-outline{background:none;border:1px solid var(--line);color:var(--ink)}.btn-outline:hover{border-color:var(--ink)}
+.btn-outline{background:none;border:1px solid var(--line);color:var(--ink)}.btn-outline:hover{border-color:var(--ink)}
 .btn-rust{background:var(--rust);color:white}.btn-rust:hover{background:#a93226}
 .btn-sm{padding:5px 11px;font-size:11px}
 .btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:auto;margin-bottom:18px}
+.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:auto;margin-bottom:18px;background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:var(--ink);color:var(--paper);padding:8px 11px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
 tbody tr:hover{background:rgba(184,134,11,.04)}
 .td-mono{font-family:var(--mono);font-size:12px}
 .badge{display:inline-block;padding:2px 6px;border-radius:2px;font-size:11px;font-weight:600;font-family:var(--mono)}
-.badge-ok{background:#d4edda;color:#155724}.badge-warn{background:#fff3cd;color:#856404}
-.badge-danger{background:#f8d7da;color:#721c24}.badge-muted{background:var(--line);color:var(--muted)}
+.badge-ok{background:#d4edda;color:#155724}.badge-warn{background:#fff3cd;color:#856404}.badge-danger{background:#f8d7da;color:#721c24}.badge-muted{background:var(--line);color:var(--muted)}
 .alert{padding:11px 15px;border-radius:2px;border-left:4px solid;margin-bottom:12px;font-size:13px;line-height:1.6}
 .alert-ok{background:#d4edda;border-color:var(--success);color:#155724}
 .alert-warn{background:#fff3cd;border-color:var(--warn);color:#856404}
@@ -67,13 +66,611 @@ tbody tr:hover{background:rgba(184,134,11,.04)}
 .bloque{border:1px solid var(--line);border-radius:2px;margin-bottom:14px;overflow:hidden;background:var(--surface)}
 .bloque-head{background:var(--ink);color:var(--paper);padding:9px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .bloque-body{padding:14px}
-.chip{display:inline-flex;align-items:center;gap:3px;background:var(--line);padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
-.chip.M{background:#bbdefb;color:#0d47a1}.chip.T{background:#c8e6c9;color:#1b5e20}.chip.N{background:#1a1a2e;color:var(--gold)}
-.chip.R{background:#ffe0b2;color:#e65100} /* Refuerzo/Traslape */
-.chip.P{background:#e1bee7;color:#4a148c} /* Pivote Aseo */
+.chip{display:inline-flex;align-items:center;gap:3px;background:var(--line);padding:4px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.chip.M{background:#bbdefb;color:#0d47a1;border-left:3px solid #0d47a1}
+.chip.T{background:#c8e6c9;color:#1b5e20;border-left:3px solid #1b5e20}
+.chip.N{background:#1a1a2e;color:var(--gold);border-left:3px solid var(--gold)}
+.chip.R{background:#ffe0b2;color:#e65100;border-left:3px solid #e65100} /* Refuerzo/Traslape */
+.chip.P{background:#e1bee7;color:#4a148c;border-left:3px solid #4a148c} /* Pivote Aseo */
 
 .prog-bar{height:7px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:3px}
 .prog-fill{height:100%;border-radius:4px;transition:width .4s}
 .prog-ok{background:var(--success)}.prog-warn{background:var(--warn)}.prog-over{background:var(--rust)}
 
-.aus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:7px;
+.aus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:7px;margin-bottom:13px}
+.aus-item{display:flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);padding:7px 9px;border-radius:2px;font-size:12px}
+.aus-item select,.aus-item input{padding:3px 6px;border:1px solid var(--line);border-radius:2px;font-size:11px;background:var(--surface)}
+.aus-item input{width:55px}
+
+/* Estilos Calendario Visual V7 */
+.cal-day-row{display:flex;border-bottom:1px solid var(--line);padding:12px 0;align-items:flex-start}
+.cal-day-row:last-child{border-bottom:none}
+.cal-date-box{width:80px;text-align:center;padding-right:15px;border-right:2px solid var(--line);margin-right:15px}
+.cal-date-num{font-size:24px;font-weight:700;font-family:var(--mono)}
+.cal-date-name{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:600;letter-spacing:1px}
+.cal-shifts-box{flex:1;display:flex;flex-direction:column;gap:6px}
+.cal-alerts-box{width:200px;text-align:right;padding-left:15px;font-size:12px;color:var(--danger);font-weight:600}
+
+@media print{.sidebar,.topbar,.no-print{display:none!important}.content{padding:0}.main{display:block}body{background:white}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">GesturnoS<span>Ley 40 Horas · Chile 2026</span></div>
+  <nav class="nav">
+    <div class="nav-label">Principal</div>
+    <button class="nav-btn active" onclick="nav('empresas')">🏢 Empresas</button>
+    <button class="nav-btn" onclick="nav('personal')">👥 Personal</button>
+    <button class="nav-btn" onclick="nav('turnos')">📅 Malla y Calendario</button>
+    <div class="nav-label" style="margin-top:10px">Análisis</div>
+    <button class="nav-btn" onclick="nav('asesor')">🎯 Informe Asesor</button>
+    <button class="nav-btn" onclick="nav('reportes')">🖨️ Reportes</button>
+    <button class="nav-btn" onclick="nav('historial')">📚 Historial</button>
+  </nav>
+  <div class="sidebar-footer">v7.0 · Optimizador Seguro</div>
+</aside>
+<main class="main">
+  <div class="topbar no-print">
+    <div><div class="topbar-title" id="pageTitle">Empresas</div><div style="font-family:var(--mono);font-size:11px;color:var(--muted)" id="pageSub"></div></div>
+    <div class="btn-row">
+      <select id="gEmpSel" style="padding:6px 9px;border:1px solid var(--line);border-radius:2px;font-size:12px;background:var(--surface)" onchange="cambiarEmp()">
+        <option value="">— Empresa —</option>
+      </select>
+      <span id="topMes" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="panel active" id="panel-empresas">
+      <div class="panel-title">🏢 Empresas y Edificios</div>
+      <div class="btn-row" style="margin-bottom:14px">
+        <button class="btn btn-primary" onclick="openM('mEmp')">+ Nueva Empresa</button>
+        <button class="btn btn-outline" style="color:var(--danger)" onclick="resetSistema()">⚠️ Resetear Sistema</button>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Nombre</th><th>RUT</th><th>Contacto</th><th>Trabajadores</th><th>Acciones</th></tr></thead><tbody id="tbEmpresas"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="panel-personal">
+      <div class="panel-title">👥 Personal</div>
+      <div class="btn-row" style="margin-bottom:14px">
+        <button class="btn btn-primary" onclick="openM('mTrab')">+ Agregar Trabajador</button>
+        <button class="btn btn-outline" onclick="cargarEjemplo()">📋 Cargar Ejemplo 2026</button>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>RUT</th><th>Nombre</th><th>Cargo</th><th>Renta Base</th><th>Jornada</th><th>Días/Sem</th><th>Pref 1</th><th>Acciones</th></tr></thead><tbody id="tbPersonal"></tbody></table></div>
+    </div>
+
+    <div class="panel" id="panel-turnos">
+      <div class="panel-title">📅 Optimizador Lógico y Calendario Visual</div>
+      <div class="bloque">
+        <div class="bloque-head">Configuración del Mes</div>
+        <div class="bloque-body">
+          <div class="form-grid" style="margin-bottom:10px">
+            <div class="field"><label>Mes a programar</label><input type="month" id="mesTurnos" onchange="onMesChange()"></div>
+          </div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);margin-bottom:7px">Ausencias del mes (por trabajador)</div>
+          <div class="aus-grid" id="ausGrid"></div>
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--muted);margin:15px 0 7px">Horarios Base de 42h (Cruce de 30 Min Automático)</div>
+          <div class="btn-row" style="margin-bottom:12px">
+            <span class="chip M">☀️ Mañana 08:00–15:30</span>
+            <span class="chip T">🌤 Tarde 15:00–22:30</span>
+            <span class="chip N">🌙 Noche 22:00–08:30</span>
+            <span class="chip R">🔥 Refuerzo 11:00–18:30</span>
+            <span class="chip P">🧹 Pivote Aseo 10:00–17:30</span>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generarTurnos()">⚡ Calcular Malla y Calendario</button>
+            <button class="btn btn-outline" onclick="guardarMes()">💾 Guardar Mes</button>
+          </div>
+        </div>
+      </div>
+      <div id="turnResult"></div>
+    </div>
+
+    <div class="panel" id="panel-asesor">
+      <div class="panel-title">🎯 Informe Asesor Matemático y Costos</div>
+      <div id="asesorBtns" class="btn-row no-print" style="display:none;margin-bottom:16px">
+        <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimir Reporte</button>
+      </div>
+      <div id="asesorBox"><div class="alert alert-info">Genera los turnos en el panel <strong>Calendario</strong> para activar el informe financiero.</div></div>
+    </div>
+
+    <div class="panel" id="panel-reportes">
+      <div class="panel-title">🖨️ Reportes y Documentos Legales</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+        <div style="border:1px solid var(--line);padding:16px;border-radius:2px;border-top:3px solid var(--gold)">
+          <div style="font-weight:700;margin-bottom:5px">📋 Resumen Mensual</div>
+          <button class="btn btn-outline btn-sm" onclick="imprimirResumen()">Imprimir / PDF</button>
+        </div>
+        <div style="border:1px solid var(--line);padding:16px;border-radius:2px;border-top:3px solid var(--gold)">
+          <div style="font-weight:700;margin-bottom:5px">📄 Avisos Trabajadores</div>
+          <button class="btn btn-outline btn-sm" onclick="imprimirAvisos()">Imprimir / PDF</button>
+        </div>
+        <div style="border:1px solid var(--line);padding:16px;border-radius:2px;border-top:3px solid var(--rust)">
+          <div style="font-weight:700;margin-bottom:5px">⏰ Pactos Horas Extras</div>
+          <button class="btn btn-outline btn-sm" onclick="imprimirPactos()">Imprimir / PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-historial">
+      <div class="panel-title">📚 Historial de Meses</div>
+      <div id="histContent"></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<div class="modal-bg" id="mEmp">
+  <div class="modal">
+    <div class="modal-head"><h3 id="mEmpTit">Nueva Empresa</h3><button onclick="closeM('mEmp')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="mEId">
+      <div class="form-grid">
+        <div class="field"><label>Nombre *</label><input id="mENombre" placeholder="Edificio Las Hualtatas"></div>
+        <div class="field"><label>RUT</label><input id="mERut" placeholder="76.123.456-7"></div>
+        <div class="field"><label>Contacto</label><input id="mEContacto"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeM('mEmp')">Cancelar</button><button class="btn btn-primary" onclick="guardarEmpresa()">Guardar</button></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="mTrab">
+  <div class="modal">
+    <div class="modal-head"><h3 id="mTTit">Nuevo Trabajador</h3><button onclick="closeM('mTrab')">×</button></div>
+    <div class="modal-body"><input type="hidden" id="mTId">
+      <div class="form-grid">
+        <div class="field"><label>RUT *</label><input id="mTRut" placeholder="12.345.678-9"></div>
+        <div class="field"><label>Nombre *</label><input id="mTNombre"></div>
+        <div class="field"><label>Cargo</label><select id="mTCargo"><option>Conserje</option><option>Nochero</option><option>Aseo</option></select></div>
+        <div class="field"><label>Renta Base ($)</label><input id="mTRenta" type="number" value="539000"></div>
+        <div class="field"><label>Jornada</label><select id="mTJornada"><option value="42">42h (2026)</option><option value="40">40h (2028)</option></select></div>
+        <div class="field"><label>Días/semana</label><select id="mTDias"><option value="5">5 Días (Lun-Vie)</option><option value="6">6 Días (incl. Sáb)</option></select></div>
+        <div class="field"><label>Preferencia</label><select id="mTPref1"><option value="">Sin preferencia</option><option value="M">Mañana</option><option value="T">Tarde</option><option value="N">Noche</option></select></div>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:10px">Nota: El sistema inyectará "Refuerzos" automáticamente para cumplir las 42h. El cargo Aseo se usará como Pivote para cubrir colaciones.</p>
+    </div>
+    <div class="modal-foot"><button class="btn btn-outline" onclick="closeM('mTrab')">Cancelar</button><button class="btn btn-primary" onclick="guardarTrabajador()">Guardar</button></div>
+  </div>
+</div>
+
+<script>
+// Capturador global de errores para que no haya pantalla blanca silenciosa
+window.onerror = function(msg, url, line) {
+    alert("Se produjo un error. Recomendamos hacer clic en 'Resetear Sistema' en la pestaña Empresas.\nDetalle: " + msg);
+};
+
+const LEY={jornadaMax:42,extrasMaxDia:2,extrasMaxSemana:12,descansMin:12,recargo:1.5,imm:539000,gratTope:213437};
+const T={
+  M:{n:'Mañana',e:'08:00',s:'15:30',c:'12:00',h:7.5},
+  T:{n:'Tarde',e:'15:00',s:'22:30',c:'18:00',h:7.5},
+  N:{n:'Noche',e:'22:00',s:'08:30',c:'02:00',h:10.5},
+  R:{n:'Refuerzo',e:'11:00',s:'18:30',c:'14:00',h:7.5},
+  P:{n:'Aseo/Pivote',e:'10:00',s:'17:30',c:'13:30',h:7.5}
+};
+const DSW=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+// --- MANEJO SEGURO DE DATOS ---
+let S = {empresas:[], workers:{}, schedules:{}, ausencias:{}, curEmp:null, lastSched:null};
+
+function sv(){
+  try{ localStorage.setItem('gesturnos_data', JSON.stringify(S)); } catch(e){}
+}
+
+function ld(){
+  try{
+    const d = localStorage.getItem('gesturnos_data') || localStorage.getItem('gv6') || localStorage.getItem('gv3'); 
+    if(d) {
+        const parsed = JSON.parse(d);
+        S = {...S, ...parsed};
+    }
+  }catch(e){ console.error("Error al cargar datos", e); }
+  
+  // Escudos protectores por si los datos vienen corruptos de V4/V5
+  if (!Array.isArray(S.empresas)) S.empresas = [];
+  if (Array.isArray(S.workers)) S.workers = {}; 
+  if (typeof S.schedules !== 'object') S.schedules = {};
+  if (typeof S.ausencias !== 'object') S.ausencias = {};
+}
+
+function resetSistema() {
+    if(confirm("⚠️ ¿Estás seguro de borrar todos los datos del navegador y reiniciar el sistema?")) {
+        localStorage.clear();
+        location.reload();
+    }
+}
+
+function clp(n){return '$'+Math.round(n).toLocaleString('es-CL');}
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+
+function updSel(){
+  const sel=document.getElementById('gEmpSel');
+  if(!sel) return;
+  sel.innerHTML='<option value="">— Empresa —</option>' + S.empresas.map(e=>`<option value="${e.id}" ${e.id===S.curEmp?'selected':''}>${e.nombre}</option>`).join('');
+}
+
+function cambiarEmp(){
+  const v=document.getElementById('gEmpSel').value;
+  S.curEmp=v?parseInt(v):null; sv();
+  nav('personal');
+}
+
+function nav(p){
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  const pan=document.getElementById('panel-'+p);
+  if(!pan)return; pan.classList.add('active');
+  
+  // Try to find the button safely
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+      const onclickAttr = btn.getAttribute('onclick');
+      if (onclickAttr && onclickAttr.includes("'" + p + "'")) {
+          btn.classList.add('active');
+      }
+  });
+
+  const titles={empresas:'Empresas',personal:'Personal',turnos:'Optimizador Lógico',asesor:'Informe Asesor',reportes:'Reportes Legales',historial:'Historial'};
+  document.getElementById('pageTitle').textContent=titles[p]||p;
+  const emp=S.curEmp?S.empresas.find(e=>e.id===S.curEmp):null;
+  document.getElementById('pageSub').textContent=emp?emp.nombre:'';
+  
+  if(p==='empresas') renEmpresas();
+  if(p==='personal') renPersonal();
+  if(p==='turnos') initTurnos();
+  if(p==='asesor') renderAsesorMatematico();
+  if(p==='historial') renHistorial();
+}
+
+// EMPRESAS CRUD
+function renEmpresas(){
+  const tb=document.getElementById('tbEmpresas');
+  if(!S.empresas.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">Sin empresas. Haz clic en Nueva Empresa.</td></tr>';return;}
+  tb.innerHTML=S.empresas.map(e=>`<tr><td><strong>${e.nombre}</strong></td><td class="td-mono">${e.rut||'-'}</td><td>${e.contacto||'-'}</td><td>${(S.workers[e.id]||[]).length}</td><td><div class="btn-row"><button class="btn btn-outline btn-sm" onclick="editEmp(${e.id})">Editar</button><button class="btn btn-outline btn-sm" onclick="selEmp(${e.id})">Abrir</button><button class="btn btn-rust btn-sm" onclick="elimEmp(${e.id})">✕</button></div></td></tr>`).join('');
+}
+function editEmp(id){
+  const e=S.empresas.find(x=>x.id===id);
+  document.getElementById('mEId').value=id; document.getElementById('mEmpTit').textContent='Editar Empresa';
+  document.getElementById('mENombre').value=e.nombre; document.getElementById('mERut').value=e.rut||'';
+  document.getElementById('mEContacto').value=e.contacto||''; openM('mEmp');
+}
+function guardarEmpresa(){
+  const n=document.getElementById('mENombre').value.trim();
+  if(!n)return alert('Nombre requerido');
+  const idStr=document.getElementById('mEId').value;
+  if(idStr){
+    const e=S.empresas.find(x=>x.id===parseInt(idStr));
+    e.nombre=n;e.rut=document.getElementById('mERut').value;e.contacto=document.getElementById('mEContacto').value;
+  } else {
+    const id=Date.now();
+    S.empresas.push({id,nombre:n,rut:document.getElementById('mERut').value,contacto:document.getElementById('mEContacto').value});
+    S.workers[id]=[];
+  }
+  sv();closeM('mEmp');document.getElementById('mEId').value=''; renEmpresas();updSel();
+}
+function elimEmp(id){if(confirm('¿Eliminar empresa y todos sus datos?')){S.empresas=S.empresas.filter(e=>e.id!==id);delete S.workers[id];if(S.curEmp===id)S.curEmp=null;sv();renEmpresas();updSel();}}
+function selEmp(id){S.curEmp=id;sv();updSel();nav('personal');}
+
+// PERSONAL CRUD
+function renPersonal(){
+  const tb=document.getElementById('tbPersonal');
+  const ws=S.curEmp?(S.workers[S.curEmp]||[]):[];
+  if(!S.curEmp){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Selecciona una empresa arriba.</td></tr>';return;}
+  if(!ws.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Sin trabajadores. Agrega el primero o carga el ejemplo.</td></tr>';return;}
+  tb.innerHTML=ws.map(w=>`<tr><td class="td-mono">${w.rut}</td><td><strong>${w.nombre}</strong></td><td><span class="badge badge-muted">${w.cargo}</span></td><td class="td-mono">${clp(w.renta)}</td><td class="td-mono">${w.jornada}h</td><td>${w.dias}d</td><td><span class="chip ${w.pref1||''}">${w.pref1||'-'}</span></td><td><div class="btn-row"><button class="btn btn-outline btn-sm" onclick="editTrab(${w.id})">Editar</button><button class="btn btn-rust btn-sm" onclick="elimTrab(${w.id})">✕</button></div></td></tr>`).join('');
+}
+function editTrab(id){
+  const w=S.workers[S.curEmp].find(x=>x.id===id);
+  document.getElementById('mTId').value=id;document.getElementById('mTTit').textContent='Editar Trabajador';
+  document.getElementById('mTRut').value=w.rut;document.getElementById('mTNombre').value=w.nombre;
+  document.getElementById('mTCargo').value=w.cargo;document.getElementById('mTRenta').value=w.renta;
+  document.getElementById('mTJornada').value=w.jornada;document.getElementById('mTDias').value=w.dias;
+  document.getElementById('mTPref1').value=w.pref1||'';openM('mTrab');
+}
+function guardarTrabajador(){
+  if(!S.curEmp) return alert('Selecciona empresa');
+  const datos={rut:document.getElementById('mTRut').value,nombre:document.getElementById('mTNombre').value,cargo:document.getElementById('mTCargo').value,renta:parseFloat(document.getElementById('mTRenta').value)||LEY.imm,jornada:parseInt(document.getElementById('mTJornada').value),dias:parseInt(document.getElementById('mTDias').value),pref1:document.getElementById('mTPref1').value};
+  const idStr=document.getElementById('mTId').value;
+  if(idStr){const idx=S.workers[S.curEmp].findIndex(x=>x.id==idStr);S.workers[S.curEmp][idx]={...S.workers[S.curEmp][idx],...datos};}
+  else{if(!S.workers[S.curEmp])S.workers[S.curEmp]=[];S.workers[S.curEmp].push({id:Date.now(),...datos});}
+  sv();closeM('mTrab');document.getElementById('mTId').value='';['mTRut','mTNombre'].forEach(id=>document.getElementById(id).value='');renPersonal();
+}
+function elimTrab(id){if(confirm('¿Eliminar trabajador?')){S.workers[S.curEmp]=S.workers[S.curEmp].filter(w=>w.id!==id);sv();renPersonal();}}
+
+function cargarEjemplo(){
+  if(!S.curEmp){
+      const id=Date.now();
+      S.empresas.push({id,nombre:'Edificio Las Hualtatas',rut:'76.123.456-7',contacto:''});
+      S.curEmp=id;
+      S.workers[id]=[];
+      updSel();
+  }
+  S.workers[S.curEmp]=[
+    {id:1001,rut:'12.222.456-3',nombre:'Juan Pérez',cargo:'Conserje',renta:539000,jornada:42,dias:5,pref1:'M'},
+    {id:1002,rut:'13.333.234-1',nombre:'Pedro González',cargo:'Conserje',renta:539000,jornada:42,dias:5,pref1:'T'},
+    {id:1003,rut:'11.122.456-4',nombre:'Juana Andrade',cargo:'Nochero',renta:550000,jornada:42,dias:5,pref1:'N'},
+    {id:1004,rut:'17.773.234-2',nombre:'Sebastián Vargas',cargo:'Nochero',renta:545000,jornada:40,dias:6,pref1:'N'},
+    {id:1005,rut:'18.877.323-4',nombre:'María Soto',cargo:'Aseo',renta:539000,jornada:42,dias:5,pref1:'M'}
+  ];
+  sv();renPersonal();
+}
+
+// AUSENCIAS
+function ausKey(){const m=document.getElementById('mesTurnos')?.value;return S.curEmp&&m?`${S.curEmp}_${m}`:null;}
+function getAus(){const k=ausKey();return k?(S.ausencias[k]||{}):{};} 
+function setAus(wid,tipo,dias){const k=ausKey();if(!k)return;if(!S.ausencias[k])S.ausencias[k]={};if(!tipo||!parseInt(dias))delete S.ausencias[k][wid];else S.ausencias[k][wid]={tipo,dias:parseInt(dias)};sv();}
+function renAusGrid(){
+  const g=document.getElementById('ausGrid');if(!g)return;
+  const ws=S.curEmp?(S.workers[S.curEmp]||[]):[]; const aus=getAus();
+  if(!ws.length){g.innerHTML='<span style="color:var(--muted);font-size:12px">Agrega trabajadores primero.</span>';return;}
+  g.innerHTML=ws.map(w=>{
+    const a=aus[w.id]||{};
+    return `<div class="aus-item">
+      <span style="flex:1;font-weight:600">${w.nombre.split(' ')[0]}</span>
+      <select onchange="setAus(${w.id},this.value,this.nextElementSibling.value)"><option value="" ${!a.tipo?'selected':''}>Sin ausencia</option><option value="Vacaciones" ${a.tipo==='Vacaciones'?'selected':''}>Vacaciones</option><option value="Licencia" ${a.tipo==='Licencia'?'selected':''}>Licencia</option></select>
+      <input type="number" value="${a.dias||0}" min="0" max="31" onchange="setAus(${w.id},this.previousElementSibling.value,this.value)">
+      <span style="font-size:10px">días</span>
+    </div>`;
+  }).join('');
+}
+
+function initTurnos(){
+  const next=new Date();next.setMonth(next.getMonth()+1);
+  const inp=document.getElementById('mesTurnos');
+  if(!inp) return;
+  if(!inp.value)inp.value=next.toISOString().slice(0,7);
+  const topMes = document.getElementById('topMes');
+  if(topMes) topMes.textContent=inp.value;
+  renAusGrid();
+}
+function onMesChange(){
+    const topMes = document.getElementById('topMes');
+    if(topMes) topMes.textContent=document.getElementById('mesTurnos').value;
+    renAusGrid();
+}
+
+// SCHEDULER: RELLENO FORZADO DE HORAS (TRASLAPES)
+function hOrdMes(w,dim){return w.jornada*(dim/7);}
+function schedule(workers, year, month, aus) {
+  const dim = new Date(year, month, 0).getDate();
+  const ws = {}; const dA = {}; const gaps = [];
+  const mainWorkers = workers.filter(w => w.cargo !== 'Aseo');
+  const aseoWorkers = workers.filter(w => w.cargo === 'Aseo');
+  
+  workers.forEach(w => { ws[w.id] = { ha:0, da:0, asig:{}, ex:0, horasSemana: Array(6).fill(0) }; });
+
+  function canWork(w, day, tcH, dow) {
+    const a = aus[w.id];
+    if (a && a.dias > 0 && day <= a.dias) return false;
+    if (dow === 0 && day>6 && ws[w.id].asig[day-1] && ws[w.id].asig[day-2] && ws[w.id].asig[day-3] && ws[w.id].asig[day-4] && ws[w.id].asig[day-5] && ws[w.id].asig[day-6]) return false;
+    if (ws[w.id].asig[day]) return false; 
+    const semana = Math.floor((day-1)/7);
+    if (ws[w.id].horasSemana[semana] + tcH > w.jornada + LEY.extrasMaxSemana) return false;
+    return true;
+  }
+
+  // 1. Cobertura Base
+  for(let day=1; day<=dim; day++) {
+    const dow = new Date(year, month-1, day).getDay();
+    dA[day] = { M:[], T:[], N:[], R:[], P:[] };
+    
+    ['M','T','N'].forEach(tc => {
+      let cands = mainWorkers.map(w => ({ 
+        w: w, 
+        score: (hOrdMes(w, dim) - ws[w.id].ha)*10 + (w.pref1===tc ? 5 : 0) - (dow===0 ? 50 : 0)
+      })).filter(x => canWork(x.w, day, T[tc].h, dow));
+      
+      cands.sort((a,b) => b.score - a.score);
+
+      if (cands.length > 0) {
+        let elegido = cands[0].w;
+        ws[elegido.id].asig[day] = tc;
+        ws[elegido.id].ha += T[tc].h; ws[elegido.id].da++;
+        ws[elegido.id].horasSemana[Math.floor((day-1)/7)] += T[tc].h;
+        dA[day][tc].push(elegido.id);
+      } else { gaps.push({day, tc, dow}); }
+    });
+
+    // 2. Pivote Aseo
+    aseoWorkers.forEach(aw => {
+      if (canWork(aw, day, T.P.h, dow) && dow !== 0) {
+        ws[aw.id].asig[day] = 'P';
+        ws[aw.id].ha += T.P.h; ws[aw.id].da++;
+        ws[aw.id].horasSemana[Math.floor((day-1)/7)] += T.P.h;
+        dA[day]['P'].push(aw.id);
+      }
+    });
+  }
+
+  // 3. Relleno Forzado (Refuerzos)
+  mainWorkers.forEach(w => {
+    let meta = hOrdMes(w, dim);
+    let iter = 0;
+    while(ws[w.id].ha < meta - 7 && iter < 31) { 
+      let bestDay = -1;
+      for(let d=1; d<=dim; d++) {
+        let dow = new Date(year, month-1, d).getDay();
+        if(canWork(w, d, T.R.h, dow)) { bestDay = d; break; }
+      }
+      if (bestDay > 0) {
+        ws[w.id].asig[bestDay] = 'R';
+        ws[w.id].ha += T.R.h; ws[w.id].da++;
+        ws[w.id].horasSemana[Math.floor((bestDay-1)/7)] += T.R.h;
+        dA[bestDay]['R'].push(w.id);
+      } else { break; }
+      iter++;
+    }
+  });
+
+  workers.forEach(w => { ws[w.id].ex = Math.max(0, ws[w.id].ha - hOrdMes(w, dim)); });
+  let tot = 3 * dim; let ok = tot - gaps.length;
+  return { ws, dA, gaps, cob: Math.round((ok/tot)*100)||0, dim };
+}
+
+function generarTurnos(){
+  if(!S.curEmp) return alert('Selecciona empresa en la barra superior');
+  const workers=S.workers[S.curEmp]||[];
+  if(!workers.length) return alert('No hay trabajadores para asignar');
+  const mesVal=document.getElementById('mesTurnos').value;
+  const [year, month] = mesVal.split('-').map(Number);
+  const aus=getAus();
+  
+  const result=schedule(workers, year, month, aus);
+  S.lastSched={...result, mesVal, empresaId:S.curEmp, workers:[...workers]};
+  sv(); 
+  renResultado(result, workers, year, month);
+  const btnDiv = document.getElementById('asesorBtns');
+  if(btnDiv) btnDiv.style.display='flex';
+  renderAsesorMatematico();
+}
+
+// CALENDARIO VISUAL Y TABLAS
+function renResultado(res, workers, year, month){
+  const aus = getAus();
+  let html = `<div class="stats-row">
+    <div class="stat ${res.cob===100?'ok':res.cob>80?'warn':'danger'}"><div class="stat-val">${res.cob}%</div><div class="stat-lbl">Cobertura Base</div></div>
+    <div class="stat ${res.gaps.length?'danger':'ok'}"><div class="stat-val">${res.gaps.length}</div><div class="stat-lbl">Turnos Base sin cubrir</div></div>
+  </div>`;
+
+  html+=`<h3 style="font-size:12px;font-weight:700;text-transform:uppercase;margin:0 0 8px">Utilización de Horas por Trabajador</h3>
+    <div class="table-wrap"><table><thead><tr><th>Trabajador</th><th>Ausencia</th><th>H. Ley</th><th>H. Asignadas</th><th>Utilización</th><th>H. Extras</th></tr></thead><tbody>`;
+  workers.forEach(w=>{
+    const s=res.ws[w.id]; const hMeta=hOrdMes(w,res.dim);
+    const util=(s.ha/hMeta)*100;
+    const a=aus[w.id]; const ausL=a&&a.dias>0?`<span class="badge badge-warn">${a.tipo} ${a.dias}d</span>`:'<span style="color:#ccc">—</span>';
+    html+=`<tr><td><strong>${w.nombre}</strong><br><span style="font-size:11px;color:var(--muted)">${w.cargo}</span></td>
+      <td>${ausL}</td><td class="td-mono">${hMeta.toFixed(1)}h</td><td class="td-mono">${s.ha.toFixed(1)}h</td>
+      <td><div style="display:flex;align-items:center;gap:5px"><div class="prog-bar"><div class="prog-fill ${util<95?'prog-warn':util>100?'prog-over':'prog-ok'}" style="width:${Math.min(util,100)}%"></div></div><span class="td-mono" style="font-size:11px">${util.toFixed(0)}%</span></div></td>
+      <td class="td-mono" style="color:${s.ex>0?'var(--rust)':'var(--success)'};font-weight:bold">${s.ex.toFixed(1)}h</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+
+  // Calendario Diario Visual
+  html+=`<h3 style="font-size:12px;font-weight:700;text-transform:uppercase;margin:14px 0 8px">Calendario Diario Detallado</h3>
+    <div class="bloque" style="background:var(--surface)"><div class="bloque-body" style="padding:0">`;
+  
+  for(let d=1; d<=res.dim; d++) {
+    const dow = new Date(year, month-1, d).getDay();
+    let diaData = res.dA[d];
+    const getNames = (arr) => arr.map(id => workers.find(w=>w.id===id)?.nombre.split(' ')[0] || 'Desc').join(', ');
+    
+    let turnosHtml = '';
+    ['M','T','N','R','P'].forEach(tc => {
+      if(diaData[tc] && diaData[tc].length > 0) {
+        turnosHtml += `<span class="chip ${tc}"><strong>${T[tc].e}-${T[tc].s} (${T[tc].n}):</strong> ${getNames(diaData[tc])}</span> `;
+      }
+    });
+
+    let alertasHtml = '';
+    ['M','T','N'].forEach(tc => { if(!diaData[tc] || diaData[tc].length===0) alertasHtml += `⚠️ Falta ${T[tc].n}<br>`; });
+
+    html += `<div class="cal-day-row" style="background:${(dow===0||dow===6) ? '#f8f9fa' : 'transparent'}">
+      <div class="cal-date-box"><div class="cal-date-name">${DSW[dow]}</div><div class="cal-date-num">${String(d).padStart(2,'0')}</div></div>
+      <div class="cal-shifts-box">${turnosHtml || '<span style="color:#ccc;font-size:12px">Sin personal programado</span>'}</div>
+      <div class="cal-alerts-box">${alertasHtml}</div>
+    </div>`;
+  }
+  html+=`</div></div>`;
+  const resultDiv = document.getElementById('turnResult');
+  if(resultDiv) resultDiv.innerHTML=html;
+}
+
+// ASESOR FINANCIERO MATEMÁTICO
+function renderAsesorMatematico(){
+  const box = document.getElementById('asesorBox');
+  if(!box || !S.lastSched) return;
+  const sc = S.lastSched;
+  
+  let totalSueldos = 0; let totalCostoExtras = 0; let maxExtraSemanal = 0;
+  let tablaHtml = `<div class="table-wrap"><table><thead><tr><th>Trabajador</th><th>H. Ley Mensual</th><th>H. Extras</th><th>Costo Extras a Pagar</th></tr></thead><tbody>`;
+  
+  sc.workers.forEach(w => {
+    const s = sc.ws[w.id]; const hMeta = hOrdMes(w, sc.dim);
+    let maxSemanaW = 0;
+    s.horasSemana.forEach(hs => { let extra = Math.max(0, hs - w.jornada); if(extra > maxSemanaW) maxSemanaW = extra; });
+    if(maxSemanaW > maxExtraSemanal) maxExtraSemanal = maxSemanaW;
+
+    const valorHoraOrd = (w.renta / 30) * 28 / w.jornada;
+    const costoExtraW = s.ex * (valorHoraOrd * LEY.recargo);
+    totalSueldos += w.renta; totalCostoExtras += costoExtraW;
+
+    let colorEx = s.ex > 0 ? 'var(--rust)' : 'var(--success)';
+    tablaHtml += `<tr><td><strong>${w.nombre}</strong></td><td class="td-mono">${hMeta.toFixed(1)}</td><td class="td-mono" style="color:${colorEx};font-weight:bold">${s.ex.toFixed(1)}</td><td class="td-mono" style="color:${colorEx}">${clp(costoExtraW)}</td></tr>`;
+  });
+  tablaHtml += `</tbody></table></div>`;
+
+  const costoNuevoTrabajador = LEY.imm + LEY.gratTope; 
+  let recHtml = '';
+  
+  if (totalCostoExtras > costoNuevoTrabajador) {
+    recHtml = `<div class="alert alert-ok" style="border-color:var(--success); background:#d4edda; color:#155724">✅ <strong>RECOMENDACIÓN ESTRATÉGICA: CONTRATAR.</strong> El pago proyectado de horas extras (<strong>${clp(totalCostoExtras)}</strong>) es MÁS CARO que incorporar a una persona nueva con Sueldo Mínimo y Gratificación (<strong>${clp(costoNuevoTrabajador)}</strong>). Ahorrarás mensualmente: <strong>${clp(totalCostoExtras - costoNuevoTrabajador)}</strong></div>`;
+  } else if (maxExtraSemanal > LEY.extrasMaxSemana || sc.gaps.length > 0) {
+    recHtml = `<div class="alert alert-danger" style="background:#f8d7da; color:#721c24">🛑 <strong>ALERTA DE RIESGO LEGAL: DEBES CONTRATAR.</strong> Las horas extras son financieramente más baratas que contratar (${clp(totalCostoExtras)}), pero tienes <strong>${sc.gaps.length} turnos descubiertos</strong> o hay trabajadores superando el tope legal de <strong>12 horas extras semanales</strong>. Te expones a multas graves de la Dirección del Trabajo[cite: 3].</div>`;
+  } else if (totalCostoExtras > 0) {
+    recHtml = `<div class="alert alert-warn" style="background:#fff3cd; color:#856404">⚠️ <strong>RECOMENDACIÓN OPERATIVA: MANTENER Y AJUSTAR.</strong> El costo de horas extras está dentro del marco legal permitido y su valor (<strong>${clp(totalCostoExtras)}</strong>) es menor que firmar un nuevo contrato base (${clp(costoNuevoTrabajador)}). Te recomendamos cambiar la jornada de tu personal rotativo de 5 a 6 días por semana para absorber estas horas sin recargo legal del 50%.</div>`;
+  } else {
+    recHtml = `<div class="alert alert-ok" style="background:#d4edda; color:#155724">✅ <strong>OPERACIÓN 100% ÓPTIMA.</strong> Los turnos cubren todas las franjas horarias (incluyendo traslapes obligados), sin incurrir en pago de horas extras y cumpliendo la Ley de 40 Horas.</div>`;
+  }
+
+  box.innerHTML = `
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">${clp(totalSueldos)}</div><div class="stat-lbl">Nómina Base</div></div>
+      <div class="stat ${totalCostoExtras>0?'danger':'ok'}"><div class="stat-val">${clp(totalCostoExtras)}</div><div class="stat-lbl">Costo Horas Extras</div></div>
+      <div class="stat"><div class="stat-val">${clp(costoNuevoTrabajador)}</div><div class="stat-lbl">Costo Contratar 1 Base</div></div>
+    </div>
+    ${recHtml}
+    <h4 style="font-size:14px;font-weight:700;margin:14px 0 8px">Desglose Financiero</h4>
+    ${tablaHtml}
+  `;
+}
+
+// IMPRESIÓN Y GUARDADO
+function guardarMes(){if(!S.lastSched)return alert('Genera los turnos primero');const k=`${S.curEmp}_${S.lastSched.mesVal}`;if(!S.schedules)S.schedules={};S.schedules[k]={...S.lastSched,savedAt:new Date().toISOString()};sv();alert(`Mes guardado correctamente.`);}
+function pDoc(html){const w=window.open('','_blank');w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:20px}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{border:1px solid #999;padding:5px}th{background:#eee}</style></head><body>${html}</body></html>`);w.document.close();setTimeout(()=>w.print(),500);}
+
+function imprimirResumen(){
+  if(!S.lastSched) return alert("Genera el mes primero"); const sc=S.lastSched;
+  let doc=`<h1>RESUMEN DE TURNOS - ${sc.mesVal}</h1><table><thead><tr><th>Trabajador</th><th>Días Asig.</th><th>H.Total</th><th>H.Extras</th></tr></thead><tbody>`;
+  sc.workers.forEach(w=>{doc+=`<tr><td>${w.nombre}</td><td>${sc.ws[w.id].da}</td><td>${sc.ws[w.id].ha.toFixed(1)}</td><td>${sc.ws[w.id].ex.toFixed(1)}</td></tr>`;});
+  doc+=`</tbody></table>`; pDoc(doc);
+}
+function imprimirAvisos(){
+  if(!S.lastSched) return alert("Genera el mes primero"); const sc=S.lastSched; const [y,m]=sc.mesVal.split('-'); let doc='';
+  sc.workers.forEach(w=>{
+    const rows=Object.entries(sc.ws[w.id].asig).sort((a,b)=>+a[0]-+b[0]).map(([d,tc])=>{
+      const Tc=T[tc]; return `<tr><td>${d}/${m}/${y}</td><td>${Tc.n}</td><td>${Tc.e}</td><td>${Tc.s}</td></tr>`;
+    }).join('');
+    doc+=`<div style="page-break-after:always"><h1>AVISO DE TURNOS: ${w.nombre}</h1><table><thead><tr><th>Fecha</th><th>Turno</th><th>Entrada</th><th>Salida</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }); pDoc(doc);
+}
+function imprimirPactos(){
+  if(!S.lastSched) return alert("Genera el mes primero"); const sc=S.lastSched; const conEx=sc.workers.filter(w=>sc.ws[w.id].ex>0);
+  if(!conEx.length) return alert('Sin horas extras este mes.'); let doc='';
+  conEx.forEach(w=>{ doc+=`<div style="page-break-after:always"><h1>PACTO DE HORAS EXTRAS (Ley 21.561)</h1><p>Trabajador: ${w.nombre}</p><p>Máximo de horas a realizar en el mes: ${sc.ws[w.id].ex.toFixed(1)}</p><br><br>Firma Empleador: _______________ <br><br>Firma Trabajador: _______________</div>`; });
+  pDoc(doc);
+}
+
+function renHistorial(){
+  const c=document.getElementById('histContent');const keys=Object.keys(S.schedules||{});
+  if(!keys.length){c.innerHTML='<span style="color:var(--muted)">Sin meses guardados.</span>';return;}
+  c.innerHTML='<div class="table-wrap"><table><thead><tr><th>Mes</th><th>Cobertura</th><th>Acción</th></tr></thead><tbody>'+keys.map(k=>{
+    const sc=S.schedules[k];return `<tr><td class="td-mono">${sc.mesVal}</td><td>${sc.cob}%</td><td><button class="btn btn-outline btn-sm" onclick="cargarHist('${k}')">Cargar Mes</button></td></tr>`;
+  }).join('')+'</tbody></table></div>';
+}
+function cargarHist(k){const sc=S.schedules[k];S.curEmp=sc.empresaId;S.lastSched=sc;updSel();nav('turnos');document.getElementById('mesTurnos').value=sc.mesVal;renResultado(sc,sc.workers,...sc.mesVal.split('-').map(Number));}
+
+// Iniciar
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        ld();
+        updSel();
+        nav('empresas');
+    } catch(e) {
+        alert("Hubo un error al iniciar. Haz clic en 'Resetear Sistema'.");
+        console.error(e);
+    }
+});
+</script>
+</body>
+</html>
