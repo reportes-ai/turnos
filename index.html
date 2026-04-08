@@ -235,6 +235,7 @@
             border-radius: 4px;
             border: 1px solid var(--border);
             overflow: hidden;
+            margin-bottom: 24px;
         }
         table {
             width: 100%;
@@ -362,6 +363,40 @@
             color: var(--success);
             border-left-color: var(--success);
         }
+        .alert-warning {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warn);
+            border-left-color: var(--warn);
+        }
+        .alert-danger {
+            background: rgba(192, 57, 43, 0.1);
+            color: var(--danger);
+            border-left-color: var(--danger);
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: var(--primary);
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid var(--secondary);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
         ul { list-style: none; }
         ul li { margin: 6px 0; color: var(--text); }
         ul li:before { content: "✓ "; color: var(--secondary); font-weight: bold; margin-right: 8px; }
@@ -369,6 +404,15 @@
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--secondary); }
+        .gap-warning {
+            background: rgba(192, 57, 43, 0.15);
+            border-left: 3px solid var(--danger);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 3px;
+            font-size: 12px;
+            color: var(--danger);
+        }
     </style>
 </head>
 <body>
@@ -704,6 +748,150 @@
     </div>
 
     <script>
+        // ==================== SCHEDULER AVANZADO ====================
+        class Scheduler {
+            static SHIFTS = {
+                mañana: { start: '08:00', end: '15:15', lunch: '12:00-12:30', hours: 6.75 },
+                tarde: { start: '15:00', end: '22:15', lunch: '18:00-18:30', hours: 6.75 },
+                noche: { start: '22:00', end: '08:15', lunch: '02:00-02:30', hours: 9.75 }
+            };
+
+            static generate(workers, coverageStart, coverageEnd, selectedShifts, month, year) {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                const schedule = {};
+                const dailyCoverage = {};
+                const gaps = [];
+
+                // Inicializar
+                workers.forEach(w => {
+                    schedule[w.id] = { worker: w, assignments: {}, totalHours: 0 };
+                });
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayOfWeek = new Date(year, month - 1, day).getDay();
+                    if (dayOfWeek === 0) continue; // Skip domingos
+
+                    dailyCoverage[day] = { mañana: [], tarde: [], noche: [], gaps: [] };
+
+                    // Asignar turnos inteligentemente
+                    selectedShifts.forEach(shiftName => {
+                        const shift = this.SHIFTS[shiftName];
+                        const bestWorker = this.selectWorkerForShift(workers, schedule, shiftName);
+
+                        if (bestWorker) {
+                            if (!schedule[bestWorker.id].assignments[day]) {
+                                schedule[bestWorker.id].assignments[day] = [];
+                            }
+                            schedule[bestWorker.id].assignments[day].push({
+                                shift: shiftName,
+                                start: shift.start,
+                                end: shift.end,
+                                lunch: shift.lunch,
+                                hours: shift.hours
+                            });
+                            schedule[bestWorker.id].totalHours += shift.hours;
+                            dailyCoverage[day][shiftName].push(bestWorker.name);
+                        }
+                    });
+
+                    // Detectar gaps horarios
+                    this.detectGaps(dailyCoverage[day], coverageStart, coverageEnd, gaps);
+                }
+
+                // Calcular análisis
+                const analysis = this.analyzeSchedule(schedule, workers, gaps, month, year);
+
+                return { schedule, dailyCoverage, analysis, gaps };
+            }
+
+            static selectWorkerForShift(workers, schedule, shiftName) {
+                const candidates = workers.filter(w => {
+                    const assigned = Object.values(schedule[w.id].assignments || {}).length;
+                    return assigned < 22; // Max ~22 días al mes
+                });
+
+                return candidates.sort((a, b) => {
+                    const aPref = a.preference === shiftName ? 1 : 0;
+                    const bPref = b.preference === shiftName ? 1 : 0;
+                    return bPref - aPref;
+                })[0] || null;
+            }
+
+            static detectGaps(coverage, start, end, gaps) {
+                const hoursNeeded = this.timeToHours(end) - this.timeToHours(start);
+                const hoursAssigned = 0;
+
+                if (hoursAssigned < hoursNeeded * 0.8) {
+                    gaps.push({
+                        day: Object.keys(coverage).length,
+                        gap: `${hoursNeeded - hoursAssigned} horas sin cobertura`,
+                        severity: hoursNeeded - hoursAssigned > 4 ? 'high' : 'medium'
+                    });
+                }
+            }
+
+            static analyzeSchedule(schedule, workers, gaps, month, year) {
+                let totalHours = 0;
+                let extraHours = 0;
+                const jornada = 42; // 2026
+
+                Object.values(schedule).forEach(s => {
+                    const ordinaryHours = jornada * 4.33;
+                    totalHours += s.totalHours;
+                    if (s.totalHours > ordinaryHours) {
+                        extraHours += s.totalHours - ordinaryHours;
+                    }
+                });
+
+                const avgHoursPerWorker = totalHours / workers.length;
+                const canCoverWithCurrent = extraHours < jornada * workers.length * 0.2;
+                const needsMore = !canCoverWithCurrent;
+
+                return {
+                    totalHours: totalHours.toFixed(1),
+                    extraHours: extraHours.toFixed(1),
+                    avgHoursPerWorker: avgHoursPerWorker.toFixed(1),
+                    canCoverWithCurrent,
+                    needsMore,
+                    gapCount: gaps.length,
+                    recommendation: this.getRecommendation(workers, extraHours, canCoverWithCurrent)
+                };
+            }
+
+            static getRecommendation(workers, extraHours, canCover) {
+                const avgSalary = workers.reduce((s, w) => s + w.salary, 0) / workers.length;
+                const extraCost = extraHours * (avgSalary / 30 / (42 / 5)) * 1.5;
+
+                if (extraCost > avgSalary * 0.4) {
+                    return {
+                        type: 'hire',
+                        title: '💼 Contratar Personal',
+                        description: `Costo de extras: $${extraCost.toLocaleString('es-CL')}`,
+                        suggestion: `Contratar 1 persona con jornada de 42h (costo: $${avgSalary.toLocaleString('es-CL')})`
+                    };
+                } else if (!canCover) {
+                    return {
+                        type: 'partial',
+                        title: '⚠️ Requiere Horas Extras',
+                        description: `${extraHours.toFixed(1)}h extras necesarias`,
+                        suggestion: 'Con horas extras se cubre, pero generaría costo adicional'
+                    };
+                } else {
+                    return {
+                        type: 'optimal',
+                        title: '✓ Cobertura Óptima',
+                        description: 'Personal actual cubre todas las horas',
+                        suggestion: 'Sin necesidad de horas extras'
+                    };
+                }
+            }
+
+            static timeToHours(time) {
+                const [h, m] = time.split(':').map(Number);
+                return h + m / 60;
+            }
+        }
+
         // ==================== APP ====================
         class App {
             static state = { companies: [], workers: {}, currentCompany: null };
@@ -865,7 +1053,6 @@
                     </tr>
                 `).join('');
 
-                // Cargar en selector de turnos
                 const turnosSelect = document.getElementById('turnosCompany');
                 turnosSelect.innerHTML = '<option value="">Selecciona</option>' +
                     this.state.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -946,6 +1133,8 @@
             static generateOptimalSchedule() {
                 const companyId = parseInt(document.getElementById('turnosCompany').value);
                 const monthStr = document.getElementById('turnosMonth').value;
+                const coverageStart = document.getElementById('coverageStart').value;
+                const coverageEnd = document.getElementById('coverageEnd').value;
 
                 if (!companyId || !monthStr) {
                     alert('Selecciona empresa y mes');
@@ -967,26 +1156,139 @@
                     return;
                 }
 
-                // Simulación básica
-                let html = `<div class="alert alert-success">✓ Turnos generados para ${monthStr}</div>`;
-                html += '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px;">';
+                const result = Scheduler.generate(workers, coverageStart, coverageEnd, selectedShifts, month, year);
+                this.displayScheduleResult(result, workers, monthStr, company);
+            }
+
+            static displayScheduleResult(result, workers, monthStr, company) {
+                const { schedule, analysis, gaps, dailyCoverage } = result;
+                const daysInMonth = new Date(monthStr.split('-')[0], monthStr.split('-')[1], 0).getDate();
+
+                let html = `<div class="alert alert-success">✓ Turnos optimizados para ${monthStr}</div>`;
+
+                // Resumen
+                html += `
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">${analysis.totalHours}</div>
+                            <div class="stat-label">Horas Totales</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${analysis.extraHours}</div>
+                            <div class="stat-label">Horas Extras</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${analysis.avgHoursPerWorker}</div>
+                            <div class="stat-label">Promedio/Trabajador</div>
+                        </div>
+                    </div>
+                `;
+
+                // Recomendación
+                if (analysis.recommendation) {
+                    const rec = analysis.recommendation;
+                    const alertClass = rec.type === 'optimal' ? 'alert-success' : 
+                                     rec.type === 'partial' ? 'alert-warning' : 'alert-danger';
+                    html += `
+                        <div class="alert ${alertClass}">
+                            <strong>${rec.title}</strong>
+                            <p style="margin-top: 8px;">${rec.description}</p>
+                            <p style="margin-top: 4px; font-style: italic;">💡 ${rec.suggestion}</p>
+                        </div>
+                    `;
+                }
+
+                // Tabla día por día
+                html += `<h3 style="color: var(--secondary); margin: 24px 0 16px; font-size: 16px;">Programación Detallada por Día</h3>`;
+                html += `<div class="table-wrapper"><table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Turno</th>
+                            <th>Trabajador</th>
+                            <th>Entrada</th>
+                            <th>Colación</th>
+                            <th>Salida</th>
+                            <th>Cobertura</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dayOfWeek = new Date(new Date().getFullYear(), new Date().getMonth(), day).getDay();
+                    if (dayOfWeek === 0) continue;
+
+                    const coverage = dailyCoverage[day] || { mañana: [], tarde: [], noche: [] };
+                    let hasAssignments = false;
+
+                    ['mañana', 'tarde', 'noche'].forEach(shift => {
+                        const workers = coverage[shift] || [];
+                        if (workers.length > 0) {
+                            hasAssignments = true;
+                            const shiftData = Scheduler.SHIFTS[shift];
+                            workers.forEach((workerName, idx) => {
+                                html += `
+                                    <tr>
+                                        <td>${day}</td>
+                                        <td><strong>${shift.toUpperCase()}</strong></td>
+                                        <td>${workerName}</td>
+                                        <td>${shiftData.start}</td>
+                                        <td>${shiftData.lunch}</td>
+                                        <td>${shiftData.end}</td>
+                                        <td>✓ ${shift}</td>
+                                    </tr>
+                                `;
+                            });
+                        }
+                    });
+
+                    if (!hasAssignments) {
+                        html += `
+                            <tr style="background: rgba(192, 57, 43, 0.1);">
+                                <td colspan="7" style="color: var(--danger); font-weight: 600;">
+                                    ⚠️ Día ${day}: SIN COBERTURA - Requiere personal adicional
+                                </td>
+                            </tr>
+                        `;
+                    }
+                }
+
+                html += `</tbody></table></div>`;
+
+                // Detalles por trabajador
+                html += `<h3 style="color: var(--secondary); margin: 24px 0 16px; font-size: 16px;">Asignación por Trabajador</h3>`;
+                html += `<div class="table-wrapper"><table>
+                    <thead>
+                        <tr>
+                            <th>Trabajador</th>
+                            <th>Días Asignados</th>
+                            <th>Horas Totales</th>
+                            <th>Horas Ordinarias</th>
+                            <th>Horas Extras</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                `;
 
                 workers.forEach(w => {
+                    const assignments = Object.values(schedule[w.id].assignments || {}).length;
+                    const totalHours = schedule[w.id].totalHours;
                     const ordinaryHours = parseInt(w.jornada) * 4.33;
+                    const extraHours = Math.max(0, totalHours - ordinaryHours);
+
                     html += `
-                        <div class="card">
-                            <div style="color: var(--secondary); font-weight: 600;">${w.name}</div>
-                            <div style="margin-top: 12px; font-size: 12px; color: var(--text-dim);">
-                                <p>Horas: ${ordinaryHours.toFixed(1)}</p>
-                                <p>Cargo: ${w.position}</p>
-                                <p>Preferencia: ${w.preference || 'Sin preferencia'}</p>
-                            </div>
-                        </div>
+                        <tr>
+                            <td><strong>${w.name}</strong></td>
+                            <td>${assignments}</td>
+                            <td>${totalHours.toFixed(1)}</td>
+                            <td>${ordinaryHours.toFixed(1)}</td>
+                            <td style="color: ${extraHours > 0 ? 'var(--danger)' : 'var(--success)'};">${extraHours.toFixed(1)}</td>
+                        </tr>
                     `;
                 });
 
-                html += '</div>';
-                html += '<div style="margin-top: 24px;"><button class="btn btn-secondary" onclick="alert(\'Reportelistado para descargar\')">📄 Ver Detalles</button></div>';
+                html += `</tbody></table></div>`;
 
                 document.getElementById('scheduleResult').innerHTML = html;
                 document.getElementById('scheduleResult').style.display = 'block';
@@ -1009,23 +1311,23 @@
 
                 let html = `
                     <div class="alert alert-success">Cálculo Legal Ley 21.561</div>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
-                        <div class="card">
-                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">$${salary.toLocaleString('es-CL')}</div>
-                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Sueldo Base</div>
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">$${salary.toLocaleString('es-CL')}</div>
+                            <div class="stat-label">Sueldo Base</div>
                         </div>
-                        <div class="card">
-                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">${extraHours.toFixed(1)}</div>
-                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Horas Extras</div>
+                        <div class="stat-box">
+                            <div class="stat-value">${extraHours.toFixed(1)}</div>
+                            <div class="stat-label">Horas Extras</div>
                         </div>
-                        <div class="card">
-                            <div style="font-size: 20px; font-weight: bold; color: var(--secondary);">$${extraCost.toLocaleString('es-CL')}</div>
-                            <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-top: 8px;">Costo Extras</div>
+                        <div class="stat-box">
+                            <div class="stat-value">$${extraCost.toLocaleString('es-CL')}</div>
+                            <div class="stat-label">Costo Extras</div>
                         </div>
                     </div>
-                    <div style="margin-top: 24px; padding: 16px; background: var(--primary); border-radius: 4px; border-left: 4px solid var(--secondary);">
-                        <div style="font-size: 14px; color: var(--text-dim); margin-bottom: 8px;">Total Mensual</div>
-                        <div style="font-size: 28px; font-weight: bold; color: var(--secondary);">$${(salary + extraCost).toLocaleString('es-CL')}</div>
+                    <div style="margin-top: 24px; padding: 20px; background: var(--primary); border-radius: 4px; border-left: 4px solid var(--secondary);">
+                        <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px;">Total Mensual</div>
+                        <div style="font-size: 32px; font-weight: bold; color: var(--secondary);">$${(salary + extraCost).toLocaleString('es-CL')}</div>
                     </div>
                 `;
 
@@ -1056,7 +1358,6 @@
             }
         }
 
-        // Init
         document.addEventListener('DOMContentLoaded', () => {
             App.init();
         });
