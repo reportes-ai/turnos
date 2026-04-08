@@ -331,6 +331,7 @@ class App {
         
         const [year, month] = monthStr.split('-').map(Number);
         const workers = Worker.getByCompany(companyId);
+        const company = Company.getById(companyId);
         
         if (workers.length === 0) {
             alert('No hay trabajadores para generar turnos');
@@ -346,44 +347,124 @@ class App {
         }
         
         try {
-            const optimized = Scheduler.optimize(workers, coverageStart, coverageEnd, selectedShifts);
-            this.displayScheduleResult(optimized, companyId, monthStr);
+            // Usar nuevo algoritmo avanzado
+            const result = SchedulerAdvanced.optimize(
+                workers, 
+                coverageStart, 
+                coverageEnd, 
+                selectedShifts,
+                month,
+                year
+            );
+            
+            this.displayAdvancedScheduleResult(result, companyId, monthStr, company);
         } catch (error) {
             alert('Error al generar turnos: ' + error.message);
         }
     }
     
-    static displayScheduleResult(result, companyId, monthStr) {
-        const company = Company.getById(companyId);
-        let html = `<div class="alert alert-success">✓ Turnos generados para ${monthStr}</div>`;
+    static displayAdvancedScheduleResult(result, companyId, monthStr, company) {
+        const { schedule, analysis, summary } = result;
         
+        let html = `<div class="alert alert-success">✓ Turnos optimizados para ${monthStr}</div>`;
+        
+        // Resumen ejecutivo
         html += `
             <div style="margin-top: 24px;">
-                <h3 style="color: var(--secondary); margin-bottom: 16px;">Resumen de Asignaciones</h3>
+                <h3 style="color: var(--secondary); margin-bottom: 16px;">📊 Resumen Ejecutivo</h3>
                 
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
                     <div class="card">
-                        <div class="stat-value">${Object.keys(result.schedule).length}</div>
+                        <div class="stat-value">${summary.totalWorkers}</div>
                         <div class="stat-label">Trabajadores</div>
                     </div>
                     <div class="card">
-                        <div class="stat-value">${Object.values(result.schedule).reduce((sum, a) => sum + a.hours, 0).toFixed(0)}</div>
+                        <div class="stat-value">${summary.totalHours.toFixed(0)}</div>
                         <div class="stat-label">Horas Totales</div>
                     </div>
                     <div class="card">
-                        <div class="stat-value">${Object.values(result.schedule).reduce((sum, a) => sum + a.extraHours, 0).toFixed(1)}</div>
+                        <div class="stat-value">${summary.totalExtras.toFixed(1)}</div>
                         <div class="stat-label">Horas Extras</div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-value">$${summary.totalCosts.toLocaleString('es-CL')}</div>
+                        <div class="stat-label">Costo Total</div>
                     </div>
                 </div>
         `;
         
-        if (result.issues.length > 0) {
-            html += `<div class="alert alert-warning">⚠️ ${result.issues.length} problemas detectados</div>`;
+        // Detalles por trabajador
+        html += `
+            <h3 style="color: var(--secondary); margin-bottom: 16px;">👥 Detalles por Trabajador</h3>
+            
+            <div class="table-wrapper">
+                <table style="width: 100%; font-size: 12px;">
+                    <thead>
+                        <tr style="background: #1a3a52;">
+                            <th style="padding: 10px; color: #d4a574; text-align: left;">Trabajador</th>
+                            <th style="padding: 10px; color: #d4a574; text-align: center;">Horas Ordinarias</th>
+                            <th style="padding: 10px; color: #d4a574; text-align: center;">Horas Extras</th>
+                            <th style="padding: 10px; color: #d4a574; text-align: center;">Total Horas</th>
+                            <th style="padding: 10px; color: #d4a574; text-align: center;">Costo Extras</th>
+                            <th style="padding: 10px; color: #d4a574; text-align: center;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        Object.values(schedule).forEach(s => {
+            const jornada = parseInt(s.worker.jornada);
+            const ordinaryHours = jornada * 4.33;
+            const extraCost = s.extraCost;
+            const status = s.extraHours > 0 ? '⚠️ Extras' : '✓ Cumple';
+            
+            html += `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 10px;"><strong>${s.worker.name}</strong></td>
+                    <td style="padding: 10px; text-align: center;">${ordinaryHours.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center; color: ${s.extraHours > 0 ? '#e74c3c' : '#27ae60'};">${s.extraHours.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center;"><strong>${s.totalHours.toFixed(1)}</strong></td>
+                    <td style="padding: 10px; text-align: center;">$${extraCost.toLocaleString('es-CL')}</td>
+                    <td style="padding: 10px; text-align: center;">${status}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        // Análisis de cobertura
+        html += `
+            <h3 style="color: var(--secondary); margin-top: 24px; margin-bottom: 16px;">📋 Análisis de Cobertura</h3>
+            <div style="padding: 16px; background: var(--primary); border-radius: 4px; font-size: 13px;">
+                <p style="margin: 8px 0;">✓ Cobertura diaria de turnos: ${Object.keys(analysis.dailyCoverage).length} días</p>
+                <p style="margin: 8px 0;">✓ Promedio de horas por trabajador: ${summary.avgHoursPerWorker}</p>
+                <p style="margin: 8px 0;">✓ Trabajadores con horas extras: ${summary.workersWithExtras} / ${summary.totalWorkers}</p>
+            </div>
+        `;
+        
+        // Violaciones (si las hay)
+        if (analysis.violations.length > 0) {
+            html += `
+                <div class="alert alert-warning" style="margin-top: 24px;">
+                    ⚠️ <strong>${analysis.violations.length} problemas detectados:</strong>
+                    <ul style="margin: 8px 0 0 20px;">
+            `;
+            analysis.violations.forEach(v => {
+                html += `<li style="margin: 4px 0;">${v.worker}: ${v.violation}</li>`;
+            });
+            html += `</ul></div>`;
         }
         
-        if (result.recommendations.length > 0) {
-            html += `<h3 style="color: var(--secondary); margin: 24px 0 16px;">Recomendaciones</h3>`;
-            result.recommendations.forEach(rec => {
+        // Recomendaciones
+        if (analysis.recommendations.length > 0) {
+            html += `
+                <h3 style="color: var(--secondary); margin-top: 24px; margin-bottom: 16px;">💡 Recomendaciones</h3>
+            `;
+            analysis.recommendations.forEach(rec => {
                 html += `
                     <div style="padding: 16px; background: var(--primary); border-radius: 4px; margin-bottom: 12px; border-left: 4px solid var(--secondary);">
                         <strong>${rec.title}</strong>
@@ -394,24 +475,40 @@ class App {
             });
         }
         
+        // Botones de acción
         html += `
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button class="btn btn-success" onclick="App.saveSchedule(${companyId}, '${monthStr}')">💾 Guardar Turnos</button>
-                <button class="btn btn-secondary" onclick="App.printSchedule()">🖨️ Imprimir</button>
+                <button class="btn btn-success" onclick="App.saveAndPrintSchedule('${companyId}', '${monthStr}', '${company.name}')">📄 Ver Reporte Completo</button>
+                <button class="btn btn-secondary" onclick="window.print()">🖨️ Imprimir</button>
             </div>
         </div>
         `;
         
         document.getElementById('scheduleResult').innerHTML = html;
         document.getElementById('scheduleResult').style.display = 'block';
+        
+        // Guardar resultado para impresión
+        window.lastScheduleResult = { schedule, analysis, summary, company, monthStr };
     }
     
-    static saveSchedule(companyId, monthStr) {
-        alert('Turnos guardados para ' + monthStr);
-    }
-    
-    static printSchedule() {
-        window.print();
+    static saveAndPrintSchedule(companyId, monthStr, companyName) {
+        const result = window.lastScheduleResult;
+        if (!result) {
+            alert('Genera turnos primero');
+            return;
+        }
+        
+        const reportHTML = ReportGeneratorAdvanced.generateDetailedSchedule(
+            result.schedule,
+            { name: companyName },
+            parseInt(monthStr.split('-')[1]),
+            parseInt(monthStr.split('-')[0])
+        );
+        
+        const printWindow = window.open('', '', 'width=1200,height=800');
+        printWindow.document.write(reportHTML);
+        printWindow.document.close();
+        printWindow.print();
     }
     
     // ==================== CALCULATIONS ====================
