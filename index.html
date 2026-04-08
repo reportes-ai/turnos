@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GesturnoS v5 — Optimización Total y Traslapes</title>
+<title>GesturnoS v6 — Ley 40 Horas 2026 (Optimizador Total)</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -18,8 +18,9 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height
 .nav-btn{width:100%;padding:9px 20px;background:none;border:none;color:#94a3b8;cursor:pointer;font-family:var(--sans);font-size:13px;text-align:left;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent}
 .nav-btn:hover{background:rgba(255,255,255,.05);color:var(--paper)}
 .nav-btn.active{background:rgba(184,134,11,.1);border-left-color:var(--gold);color:var(--gold);font-weight:600}
+.sidebar-footer{padding:14px 20px;border-top:1px solid #2d3748;font-size:11px;color:#4a5568;font-family:var(--mono)}
 .main{background:var(--paper);overflow:hidden;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:2px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:14px}
+.topbar{background:var(--surface);border-bottom:2px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:14px;flex-wrap:wrap}
 .topbar-title{font-size:16px;font-weight:700}
 .content{flex:1;overflow-y:auto;padding:24px 28px}
 .panel{display:none}.panel.active{display:block}
@@ -27,20 +28,23 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
 .field{display:flex;flex-direction:column;gap:5px}
 .field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
-.field input,.field select{padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:2px;font-family:var(--sans);font-size:13px;color:var(--ink)}
+.field input,.field select{padding:8px 10px;background:var(--surface);border:1px solid var(--line);border-radius:2px;font-family:var(--sans);font-size:13px;color:var(--ink);transition:border-color .2s}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold)}
 .btn{padding:8px 16px;border:none;border-radius:2px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
 .btn-primary{background:var(--ink);color:var(--paper)}.btn-primary:hover{background:var(--slate)}
-.btn-outline{background:none;border:1px solid var(--line);color:var(--ink)}.btn-outline:hover{border-color:var(--ink)}
+.btn-gold{background:var(--gold);color:white}.btn-outline{background:none;border:1px solid var(--line);color:var(--ink)}.btn-outline:hover{border-color:var(--ink)}
 .btn-rust{background:var(--rust);color:white}.btn-rust:hover{background:#a93226}
 .btn-sm{padding:5px 11px;font-size:11px}
 .btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:auto;margin-bottom:18px;background:var(--surface)}
+.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:auto;margin-bottom:18px}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{background:var(--ink);color:var(--paper);padding:8px 11px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:rgba(184,134,11,.04)}
 .td-mono{font-family:var(--mono);font-size:12px}
 .badge{display:inline-block;padding:2px 6px;border-radius:2px;font-size:11px;font-weight:600;font-family:var(--mono)}
-.badge-ok{background:#d4edda;color:#155724}.badge-warn{background:#fff3cd;color:#856404}.badge-danger{background:#f8d7da;color:#721c24}.badge-muted{background:var(--line);color:var(--muted)}
+.badge-ok{background:#d4edda;color:#155724}.badge-warn{background:#fff3cd;color:#856404}
+.badge-danger{background:#f8d7da;color:#721c24}.badge-muted{background:var(--line);color:var(--muted)}
 .alert{padding:11px 15px;border-radius:2px;border-left:4px solid;margin-bottom:12px;font-size:13px;line-height:1.6}
 .alert-ok{background:#d4edda;border-color:var(--success);color:#155724}
 .alert-warn{background:#fff3cd;border-color:var(--warn);color:#856404}
@@ -49,276 +53,27 @@ td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
 .stat{background:var(--surface);border:1px solid var(--line);padding:13px;border-radius:2px;border-top:3px solid var(--gold)}
 .stat-val{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--ink)}
 .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.stat.danger{border-top-color:var(--rust)}.stat.ok{border-top-color:var(--success)}.stat.warn{border-top-color:var(--warn)}
+
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--line);width:92%;max-width:680px;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.modal{background:var(--surface);border:1px solid var(--line);width:92%;max-width:680px;max-height:91vh;overflow-y:auto;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .modal-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:14px;font-weight:700}
+.modal-head button{background:none;border:none;font-size:21px;cursor:pointer;color:var(--muted);line-height:1;padding:0 3px}
 .modal-body{padding:20px}
 .modal-foot{padding:13px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+
 .bloque{border:1px solid var(--line);border-radius:2px;margin-bottom:14px;overflow:hidden;background:var(--surface)}
 .bloque-head{background:var(--ink);color:var(--paper);padding:9px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .bloque-body{padding:14px}
-.chip{display:inline-flex;align-items:center;gap:5px;background:var(--line);padding:4px 8px;border-radius:3px;font-size:12px;font-weight:600}
-.chip.M{background:#bbdefb;color:#0d47a1;border-left:3px solid #0d47a1}
-.chip.T{background:#c8e6c9;color:#1b5e20;border-left:3px solid #1b5e20}
-.chip.N{background:#1a1a2e;color:var(--gold);border-left:3px solid var(--gold)}
-.chip.R{background:#ffe0b2;color:#e65100;border-left:3px solid #e65100} /* Refuerzo/Traslape */
-.chip.P{background:#e1bee7;color:#4a148c;border-left:3px solid #4a148c} /* Pivote Aseo */
-.prog-bar{height:7px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:3px;width:100%}
+.chip{display:inline-flex;align-items:center;gap:3px;background:var(--line);padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
+.chip.M{background:#bbdefb;color:#0d47a1}.chip.T{background:#c8e6c9;color:#1b5e20}.chip.N{background:#1a1a2e;color:var(--gold)}
+.chip.R{background:#ffe0b2;color:#e65100} /* Refuerzo/Traslape */
+.chip.P{background:#e1bee7;color:#4a148c} /* Pivote Aseo */
+
+.prog-bar{height:7px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:3px}
 .prog-fill{height:100%;border-radius:4px;transition:width .4s}
 .prog-ok{background:var(--success)}.prog-warn{background:var(--warn)}.prog-over{background:var(--rust)}
 
-/* Estilos de Calendario Detallado */
-.cal-day-row{display:flex;border-bottom:1px solid var(--line);padding:12px 0;align-items:flex-start}
-.cal-day-row:last-child{border-bottom:none}
-.cal-date-box{width:80px;text-align:center;padding-right:15px;border-right:2px solid var(--line);margin-right:15px}
-.cal-date-num{font-size:24px;font-weight:700;font-family:var(--mono)}
-.cal-date-name{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:600;letter-spacing:1px}
-.cal-shifts-box{flex:1;display:flex;flex-direction:column;gap:6px}
-.cal-alerts-box{width:200px;text-align:right;padding-left:15px;font-size:12px;color:var(--danger);font-weight:600}
-</style>
-</head>
-<body>
-<div class="app">
-<aside class="sidebar">
-  <div class="logo">GesturnoS<span>V5 · Calendario Diario</span></div>
-  <nav class="nav">
-    <div class="nav-label">Configuración</div>
-    <button class="nav-btn active" onclick="nav('personal')">👥 Personal</button>
-    <div class="nav-label" style="margin-top:10px">Operación</div>
-    <button class="nav-btn" onclick="nav('turnos')">📅 Malla y Calendario</button>
-    <button class="nav-btn" onclick="nav('asesor')">🎯 Informe Financiero</button>
-  </nav>
-</aside>
-<main class="main">
-  <div class="topbar">
-    <div class="topbar-title" id="pageTitle">Personal Base</div>
-    <div class="btn-row">
-      <input type="month" id="mesGlobal" style="padding:6px 9px;border:1px solid var(--line);border-radius:2px;font-size:12px;background:var(--surface)" onchange="onMesGlobalChange()">
-    </div>
-  </div>
-  <div class="content">
-
-    <div class="panel active" id="panel-personal">
-      <div class="panel-title">👥 Gestión de Personal (Edificio / Recinto)</div>
-      <div class="btn-row" style="margin-bottom:14px">
-        <button class="btn btn-primary" onclick="openM('mTrab')">+ Agregar Trabajador</button>
-        <button class="btn btn-outline" onclick="cargarEjemplo()">📋 Cargar Ejemplo 2026</button>
-      </div>
-      <div class="table-wrap"><table><thead><tr><th>RUT</th><th>Nombre</th><th>Cargo</th><th>Renta Base</th><th>Jornada</th><th>Días/Sem</th><th>Pref 1</th><th>Acciones</th></tr></thead><tbody id="tbPersonal"></tbody></table></div>
-    </div>
-
-    <div class="panel" id="panel-turnos">
-      <div class="panel-title">📅 Calendario de Turnos y Traslapes</div>
-      <div class="bloque"><div class="bloque-head">Ajustes del Mes</div><div class="bloque-body">
-        <div style="font-size:12px;margin-bottom:10px;color:var(--muted)">Ausencias del mes (Selecciona trabajador):</div>
-        <div class="form-grid" id="ausGrid"></div>
-        <div class="btn-row" style="margin-top:15px">
-          <button class="btn btn-primary" onclick="generarTurnos()">⚡ Generar Calendario Diario Mensual</button>
-        </div>
-      </div></div>
-      <div id="turnResult"></div>
-    </div>
-
-    <div class="panel" id="panel-asesor">
-      <div class="panel-title">🎯 Informe Financiero y Operativo</div>
-      <div id="informeResult"><div class="alert alert-warn">Genera el Calendario en la pestaña anterior primero.</div></div>
-    </div>
-
-  </div>
-</main>
-</div>
-
-<div class="modal-bg" id="mTrab">
-  <div class="modal">
-    <div class="modal-head"><h3 id="mTTit">Nuevo Trabajador</h3><button style="background:none;border:none;font-size:20px;cursor:pointer" onclick="closeM('mTrab')">×</button></div>
-    <div class="modal-body"><input type="hidden" id="mTId">
-      <div class="form-grid">
-        <div class="field"><label>RUT *</label><input id="mTRut" placeholder="12.345.678-9"></div>
-        <div class="field"><label>Nombre *</label><input id="mTNombre"></div>
-        <div class="field"><label>Cargo</label><select id="mTCargo"><option>Conserje</option><option>Nochero</option><option>Aseo</option></select></div>
-        <div class="field"><label>Renta Base ($)</label><input id="mTRenta" type="number" value="539000"></div>
-        <div class="field"><label>Jornada (Ley 21.561)</label><select id="mTJornada"><option value="42">42h (Año 2026)</option><option value="40">40h (Año 2028)</option></select></div>
-        <div class="field"><label>Días / Semana</label><select id="mTDias"><option value="5">5 Días (Lun-Vie)</option><option value="6">6 Días (Incluye Sáb)</option></select></div>
-        <div class="field"><label>Preferencia Turno</label><select id="mTPref1"><option value="">Sin preferencia</option><option value="M">Mañana</option><option value="T">Tarde</option><option value="N">Noche</option></select></div>
-      </div>
-    </div>
-    <div class="modal-foot"><button class="btn btn-outline" onclick="closeM('mTrab')">Cancelar</button><button class="btn btn-primary" onclick="guardarTrabajador()">Guardar</button></div>
-  </div>
-</div>
-
-<script>
-// CONSTANTES 2026
-const LEY = { jornadaMax: 42, extrasMaxDia: 2, extrasMaxSemana: 12, descansMin: 12, recargo: 1.5, imm: 539000, gratTope: 213437 };
-// Turnos con 30 min traslape. "R" es el refuerzo forzado para usar las horas subutilizadas.
-const T = {
-  M: { id:'M', n: 'Mañana', e: '08:00', s: '15:30', h: 7.5 },
-  T: { id:'T', n: 'Tarde',  e: '15:00', s: '22:30', h: 7.5 },
-  N: { id:'N', n: 'Noche',  e: '22:00', s: '08:30', h: 10.5 },
-  R: { id:'R', n: 'Refuerzo/Traslape', e: '11:00', s: '18:30', h: 7.5 } 
-};
-const DSW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-let S = { workers: [], ausencias: {}, lastSched: null };
-function sv() { localStorage.setItem('gv5', JSON.stringify(S)); }
-function ld() { const d = localStorage.getItem('gv5'); if(d) S = {...S, ...JSON.parse(d)}; }
-function clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
-
-function openM(id) { document.getElementById(id).classList.add('open'); }
-function closeM(id) { document.getElementById(id).classList.remove('open'); }
-function nav(p) {
-  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-  document.getElementById('panel-'+p).classList.add('active');
-  const btn = [...document.querySelectorAll('.nav-btn')].find(b => b.getAttribute('onclick').includes(p));
-  if(btn) btn.classList.add('active');
-  if(p==='personal') renPersonal();
-  if(p==='turnos') renAusGrid();
-  if(p==='asesor') renderAsesorMatematico();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  ld();
-  const next = new Date(); next.setMonth(next.getMonth() + 1);
-  if(!document.getElementById('mesGlobal').value) document.getElementById('mesGlobal').value = next.toISOString().slice(0,7);
-  nav('personal');
-});
-
-function onMesGlobalChange() { renAusGrid(); }
-
-function renPersonal() {
-  const tb = document.getElementById('tbPersonal');
-  if(!S.workers.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Sin personal.</td></tr>'; return; }
-  tb.innerHTML = S.workers.map(w => `<tr>
-    <td class="td-mono">${w.rut}</td><td><strong>${w.nombre}</strong></td>
-    <td><span class="badge badge-muted">${w.cargo}</span></td><td class="td-mono">${clp(w.renta)}</td>
-    <td class="td-mono">${w.jornada}h</td><td>${w.dias}d</td>
-    <td><span class="chip ${w.pref1||''}">${w.pref1||'-'}</span></td>
-    <td><button class="btn btn-outline btn-sm" onclick="editTrab(${w.id})">Editar</button> <button class="btn btn-rust btn-sm" onclick="elimTrab(${w.id})">✕</button></td>
-  </tr>`).join('');
-}
-
-function editTrab(id) {
-  const w = S.workers.find(x => x.id === id);
-  document.getElementById('mTId').value = id; document.getElementById('mTTit').textContent = 'Editar Trabajador';
-  document.getElementById('mTRut').value = w.rut; document.getElementById('mTNombre').value = w.nombre;
-  document.getElementById('mTCargo').value = w.cargo; document.getElementById('mTRenta').value = w.renta;
-  document.getElementById('mTJornada').value = w.jornada; document.getElementById('mTDias').value = w.dias;
-  document.getElementById('mTPref1').value = w.pref1 || ''; openM('mTrab');
-}
-
-function guardarTrabajador() {
-  const datos = {
-    rut: document.getElementById('mTRut').value, nombre: document.getElementById('mTNombre').value,
-    cargo: document.getElementById('mTCargo').value, renta: parseFloat(document.getElementById('mTRenta').value)||LEY.imm,
-    jornada: parseInt(document.getElementById('mTJornada').value), dias: parseInt(document.getElementById('mTDias').value),
-    pref1: document.getElementById('mTPref1').value
-  };
-  const idStr = document.getElementById('mTId').value;
-  if(idStr) { const idx = S.workers.findIndex(x=>x.id==idStr); S.workers[idx] = {...S.workers[idx], ...datos}; }
-  else { S.workers.push({id: Date.now(), ...datos}); }
-  sv(); closeM('mTrab'); document.getElementById('mTId').value=''; ['mTRut','mTNombre'].forEach(id=>document.getElementById(id).value=''); renPersonal();
-}
-function elimTrab(id) { if(confirm('¿Eliminar?')) { S.workers = S.workers.filter(w=>w.id!==id); sv(); renPersonal(); } }
-
-function cargarEjemplo() {
-  S.workers = [
-    {id:1, rut:'12.222.456-3', nombre:'Juan Pérez', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'M'},
-    {id:2, rut:'13.333.234-1', nombre:'Pedro González', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'T'},
-    {id:3, rut:'11.122.456-4', nombre:'Juana Andrade', cargo:'Nochero', renta:550000, jornada:42, dias:5, pref1:'N'},
-    {id:4, rut:'17.773.234-2', nombre:'María Soto', cargo:'Aseo', renta:539000, jornada:42, dias:5, pref1:'M'},
-  ]; sv(); renPersonal();
-}
-
-function ausKey() { return document.getElementById('mesGlobal').value; }
-function setAus(wid, dias) { const k = ausKey(); if(!S.ausencias[k]) S.ausencias[k]={}; if(!parseInt(dias)) delete S.ausencias[k][wid]; else S.ausencias[k][wid] = parseInt(dias); sv(); }
-function renAusGrid() {
-  const g = document.getElementById('ausGrid'); if(!g) return; const aus = S.ausencias[ausKey()] || {};
-  g.innerHTML = S.workers.map(w => `<div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);padding:5px;border-radius:2px">
-    <span style="flex:1;font-size:12px;font-weight:600">${w.nombre}</span>
-    <input type="number" value="${aus[w.id]||0}" min="0" max="31" style="width:60px;padding:4px" onchange="setAus(${w.id}, this.value)"> <span style="font-size:10px">días ausente</span>
-  </div>`).join('');
-}
-
-// --- NUEVO MOTOR CON RELLENO DE HORAS (TRASLAPES) ---
-function hOrdMes(w, dim) { return w.jornada * (dim/7); }
-
-function schedule(workers, year, month, aus) {
-  const dim = new Date(year, month, 0).getDate();
-  const ws = {}; 
-  const dA = {}; 
-  const uncov = [];
-  const mainWorkers = workers.filter(w => w.cargo !== 'Aseo');
-  const aseoWorkers = workers.filter(w => w.cargo === 'Aseo');
-  
-  workers.forEach(w => { ws[w.id] = { ha:0, asig:{}, ex:0, horasSemana: Array(6).fill(0) }; });
-
-  function canWork(w, day, tcH, dow) {
-    if (aus[w.id] && day <= aus[w.id]) return false; // Ausente
-    if (dow === 0 && ws[w.id].asig[day-1] && ws[w.id].asig[day-2] && ws[w.id].asig[day-3] && ws[w.id].asig[day-4] && ws[w.id].asig[day-5] && ws[w.id].asig[day-6]) return false; // 1 libre cada 6
-    if (ws[w.id].asig[day]) return false; // 1 turno por dia
-    const semana = Math.floor((day-1)/7);
-    if (ws[w.id].horasSemana[semana] + tcH > w.jornada + LEY.extrasMaxSemana) return false; // Límite legal semanal
-    return true;
-  }
-
-  // PASO 1: Cobertura Base (Asegurar M, T, N en cada día)
-  for(let day=1; day<=dim; day++) {
-    const dow = new Date(year, month-1, day).getDay();
-    dA[day] = { M:[], T:[], N:[], R:[], P:[] };
-    
-    ['M', 'T', 'N'].forEach(tc => {
-      // Priorizar a quien le falten MÁS horas para su meta mensual, ignorando un poco las preferencias si están bajos.
-      let cands = mainWorkers.map(w => ({ 
-        w: w, 
-        score: (hOrdMes(w, dim) - ws[w.id].ha)*10 + (w.pref1===tc ? 5 : 0) - (dow===0 ? 50 : 0)
-      })).filter(x => canWork(x.w, day, T[tc].h, dow));
-      
-      cands.sort((a,b) => b.score - a.score); // Mayor necesidad de horas primero
-
-      if (cands.length > 0) {
-        let elegido = cands[0].w;
-        ws[elegido.id].asig[day] = tc;
-        ws[elegido.id].ha += T[tc].h;
-        ws[elegido.id].horasSemana[Math.floor((day-1)/7)] += T[tc].h;
-        dA[day][tc].push(elegido.id);
-      } else {
-        uncov.push({day, tc});
-      }
-    });
-
-    // Pivote de Aseo (Cubriendo puerta y colaciones)
-    aseoWorkers.forEach(aw => {
-      if (canWork(aw, day, 7.5, dow) && dow !== 0) {
-        ws[aw.id].asig[day] = 'P';
-        ws[aw.id].ha += 7.5;
-        ws[aw.id].horasSemana[Math.floor((day-1)/7)] += 7.5;
-        dA[day]['P'].push(aw.id);
-      }
-    });
-  }
-
-  // PASO 2: Relleno Forzado para Evitar Subutilización (Traslapes "R")
-  // Si alguien no llegó a sus horas, le asignamos turnos de refuerzo superpuestos en días libres
-  mainWorkers.forEach(w => {
-    let meta = hOrdMes(w, dim);
-    let iteraciones = 0;
-    while(ws[w.id].ha < meta - 7 && iteraciones < 31) { 
-      let bestDay = -1;
-      // Buscar el mejor día para meterle un turno R (Refuerzo 11:00-18:30)
-      for(let d=1; d<=dim; d++) {
-        let dow = new Date(year, month-1, d).getDay();
-        if(canWork(w, d, T.R.h, dow)) { bestDay = d; break; }
-      }
-      if (bestDay > 0) {
-        ws[w.id].asig[bestDay] = 'R';
-        ws[w.id].ha += T.R.h;
-        ws[w.id].horasSemana[Math.floor((bestDay-1)/7)] += T.R.h;
-        dA[bestDay]['R'].push(w.id);
-      }
-      iteraciones++;
-    }
-  });
-
-  // Calcular extras finales
-  workers.
+.aus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:7px;
