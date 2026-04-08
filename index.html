@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GesturnoS v4 — Optimización 40 Horas 2026</title>
+<title>GesturnoS v5 — Optimización Total y Traslapes</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-/* CSS Optimizado */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--ink:#0d1117;--paper:#f4f1eb;--rust:#c0392b;--gold:#b8860b;--slate:#2c3e50;--muted:#6c757d;--line:#d4c9b0;--surface:#fffef9;--success:#27ae60;--warn:#e67e22;--danger:#c0392b;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh}
@@ -50,14 +49,6 @@ td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
 .stat{background:var(--surface);border:1px solid var(--line);padding:13px;border-radius:2px;border-top:3px solid var(--gold)}
 .stat-val{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--ink)}
 .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
-.cal-grid{display:grid;border:1px solid var(--line);border-radius:2px;font-size:10px;font-family:var(--mono);min-width:700px}
-.cal-hcell{background:var(--ink);color:var(--paper);padding:4px 2px;text-align:center;font-weight:600;border-right:1px solid #2d3748;font-size:9px}
-.cal-name{background:var(--surface);padding:4px 7px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;font-weight:600;font-size:10px}
-.cal-cell{padding:3px 1px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;min-width:26px;font-size:9px}
-.cal-cell.M{background:#bbdefb;color:#0d47a1;font-weight:700}
-.cal-cell.T{background:#c8e6c9;color:#1b5e20;font-weight:700}
-.cal-cell.N{background:#1a1a2e;color:#b8860b;font-weight:700}
-.cal-cell.P{background:#f3e5f5;color:#4a148c;font-weight:700;font-size:8px} /* Pivote Aseo */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--line);width:92%;max-width:680px;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -67,22 +58,35 @@ td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
 .bloque{border:1px solid var(--line);border-radius:2px;margin-bottom:14px;overflow:hidden;background:var(--surface)}
 .bloque-head{background:var(--ink);color:var(--paper);padding:9px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .bloque-body{padding:14px}
-.chip{display:inline-flex;align-items:center;gap:3px;background:var(--line);padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600}
-.chip.M{background:#bbdefb;color:#0d47a1}.chip.T{background:#c8e6c9;color:#1b5e20}.chip.N{background:#1a1a2e;color:var(--gold)}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--line);padding:4px 8px;border-radius:3px;font-size:12px;font-weight:600}
+.chip.M{background:#bbdefb;color:#0d47a1;border-left:3px solid #0d47a1}
+.chip.T{background:#c8e6c9;color:#1b5e20;border-left:3px solid #1b5e20}
+.chip.N{background:#1a1a2e;color:var(--gold);border-left:3px solid var(--gold)}
+.chip.R{background:#ffe0b2;color:#e65100;border-left:3px solid #e65100} /* Refuerzo/Traslape */
+.chip.P{background:#e1bee7;color:#4a148c;border-left:3px solid #4a148c} /* Pivote Aseo */
 .prog-bar{height:7px;background:#e0e0e0;border-radius:4px;overflow:hidden;margin-top:3px;width:100%}
 .prog-fill{height:100%;border-radius:4px;transition:width .4s}
 .prog-ok{background:var(--success)}.prog-warn{background:var(--warn)}.prog-over{background:var(--rust)}
+
+/* Estilos de Calendario Detallado */
+.cal-day-row{display:flex;border-bottom:1px solid var(--line);padding:12px 0;align-items:flex-start}
+.cal-day-row:last-child{border-bottom:none}
+.cal-date-box{width:80px;text-align:center;padding-right:15px;border-right:2px solid var(--line);margin-right:15px}
+.cal-date-num{font-size:24px;font-weight:700;font-family:var(--mono)}
+.cal-date-name{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:600;letter-spacing:1px}
+.cal-shifts-box{flex:1;display:flex;flex-direction:column;gap:6px}
+.cal-alerts-box{width:200px;text-align:right;padding-left:15px;font-size:12px;color:var(--danger);font-weight:600}
 </style>
 </head>
 <body>
 <div class="app">
 <aside class="sidebar">
-  <div class="logo">GesturnoS<span>V4 · Optimización 2026</span></div>
+  <div class="logo">GesturnoS<span>V5 · Calendario Diario</span></div>
   <nav class="nav">
     <div class="nav-label">Configuración</div>
     <button class="nav-btn active" onclick="nav('personal')">👥 Personal</button>
     <div class="nav-label" style="margin-top:10px">Operación</div>
-    <button class="nav-btn" onclick="nav('turnos')">📅 Calcular Turnos</button>
+    <button class="nav-btn" onclick="nav('turnos')">📅 Malla y Calendario</button>
     <button class="nav-btn" onclick="nav('asesor')">🎯 Informe Financiero</button>
   </nav>
 </aside>
@@ -101,30 +105,24 @@ td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
         <button class="btn btn-primary" onclick="openM('mTrab')">+ Agregar Trabajador</button>
         <button class="btn btn-outline" onclick="cargarEjemplo()">📋 Cargar Ejemplo 2026</button>
       </div>
-      <div class="alert alert-info">Registra aquí al equipo. Las horas se promediarán según el mes seleccionado arriba.</div>
       <div class="table-wrap"><table><thead><tr><th>RUT</th><th>Nombre</th><th>Cargo</th><th>Renta Base</th><th>Jornada</th><th>Días/Sem</th><th>Pref 1</th><th>Acciones</th></tr></thead><tbody id="tbPersonal"></tbody></table></div>
     </div>
 
     <div class="panel" id="panel-turnos">
-      <div class="panel-title">📅 Optimizador Lógico de Turnos</div>
+      <div class="panel-title">📅 Calendario de Turnos y Traslapes</div>
       <div class="bloque"><div class="bloque-head">Ajustes del Mes</div><div class="bloque-body">
         <div style="font-size:12px;margin-bottom:10px;color:var(--muted)">Ausencias del mes (Selecciona trabajador):</div>
         <div class="form-grid" id="ausGrid"></div>
-        
-        <div style="font-size:12px;margin:15px 0 10px;color:var(--muted)">Turnos Obligatorios con Cruce de 30 Minutos (Ley 40h):</div>
-        <div class="btn-row" style="margin-bottom:15px">
-          <label style="font-size:12px"><input type="checkbox" id="ckM" checked disabled> <span class="chip M">☀️ Mañana (08:00–15:30)</span></label>
-          <label style="font-size:12px"><input type="checkbox" id="ckT" checked disabled> <span class="chip T">🌤 Tarde (15:00–22:30)</span></label>
-          <label style="font-size:12px"><input type="checkbox" id="ckN" checked disabled> <span class="chip N">🌙 Noche (22:00–08:30)</span></label>
+        <div class="btn-row" style="margin-top:15px">
+          <button class="btn btn-primary" onclick="generarTurnos()">⚡ Generar Calendario Diario Mensual</button>
         </div>
-        <button class="btn btn-primary" onclick="generarTurnos()">⚡ Optimizar Malla Mensual</button>
       </div></div>
       <div id="turnResult"></div>
     </div>
 
     <div class="panel" id="panel-asesor">
       <div class="panel-title">🎯 Informe Financiero y Operativo</div>
-      <div id="informeResult"><div class="alert alert-warn">Debes "Optimizar Malla Mensual" en la pestaña Turnos para generar este reporte financiero.</div></div>
+      <div id="informeResult"><div class="alert alert-warn">Genera el Calendario en la pestaña anterior primero.</div></div>
     </div>
 
   </div>
@@ -144,26 +142,26 @@ td{padding:8px 11px;border-bottom:1px solid var(--line);vertical-align:middle}
         <div class="field"><label>Días / Semana</label><select id="mTDias"><option value="5">5 Días (Lun-Vie)</option><option value="6">6 Días (Incluye Sáb)</option></select></div>
         <div class="field"><label>Preferencia Turno</label><select id="mTPref1"><option value="">Sin preferencia</option><option value="M">Mañana</option><option value="T">Tarde</option><option value="N">Noche</option></select></div>
       </div>
-      <p style="font-size:10px;color:var(--muted);margin-top:10px">Nota: Personal de "Aseo" será usado automáticamente por el motor como PIVOTE (30 min) en los cruces de turno para cubrir colación y puerta, optimizando el recurso.</p>
     </div>
     <div class="modal-foot"><button class="btn btn-outline" onclick="closeM('mTrab')">Cancelar</button><button class="btn btn-primary" onclick="guardarTrabajador()">Guardar</button></div>
   </div>
 </div>
 
 <script>
-// LEY Y CONSTANTES (2026)
+// CONSTANTES 2026
 const LEY = { jornadaMax: 42, extrasMaxDia: 2, extrasMaxSemana: 12, descansMin: 12, recargo: 1.5, imm: 539000, gratTope: 213437 };
-// TURNOS CON CRUCE DE 30 MIN
+// Turnos con 30 min traslape. "R" es el refuerzo forzado para usar las horas subutilizadas.
 const T = {
-  M: { n: 'Mañana', e: '08:00', s: '15:30', h: 7.5 },
-  T: { n: 'Tarde', e: '15:00', s: '22:30', h: 7.5 },
-  N: { n: 'Noche', e: '22:00', s: '08:30', h: 10.5 }
+  M: { id:'M', n: 'Mañana', e: '08:00', s: '15:30', h: 7.5 },
+  T: { id:'T', n: 'Tarde',  e: '15:00', s: '22:30', h: 7.5 },
+  N: { id:'N', n: 'Noche',  e: '22:00', s: '08:30', h: 10.5 },
+  R: { id:'R', n: 'Refuerzo/Traslape', e: '11:00', s: '18:30', h: 7.5 } 
 };
 const DSW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
 
 let S = { workers: [], ausencias: {}, lastSched: null };
-function sv() { localStorage.setItem('gv4', JSON.stringify(S)); }
-function ld() { const d = localStorage.getItem('gv4'); if(d) S = {...S, ...JSON.parse(d)}; }
+function sv() { localStorage.setItem('gv5', JSON.stringify(S)); }
+function ld() { const d = localStorage.getItem('gv5'); if(d) S = {...S, ...JSON.parse(d)}; }
 function clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
 
 function openM(id) { document.getElementById(id).classList.add('open'); }
@@ -179,7 +177,6 @@ function nav(p) {
   if(p==='asesor') renderAsesorMatematico();
 }
 
-// INICIALIZACIÓN FECHA
 document.addEventListener('DOMContentLoaded', () => {
   ld();
   const next = new Date(); next.setMonth(next.getMonth() + 1);
@@ -189,10 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function onMesGlobalChange() { renAusGrid(); }
 
-// --- PERSONAL CRUD ---
 function renPersonal() {
   const tb = document.getElementById('tbPersonal');
-  if(!S.workers.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Sin personal. Haz clic en Agregar Trabajador.</td></tr>'; return; }
+  if(!S.workers.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Sin personal.</td></tr>'; return; }
   tb.innerHTML = S.workers.map(w => `<tr>
     <td class="td-mono">${w.rut}</td><td><strong>${w.nombre}</strong></td>
     <td><span class="badge badge-muted">${w.cargo}</span></td><td class="td-mono">${clp(w.renta)}</td>
@@ -201,6 +197,7 @@ function renPersonal() {
     <td><button class="btn btn-outline btn-sm" onclick="editTrab(${w.id})">Editar</button> <button class="btn btn-rust btn-sm" onclick="elimTrab(${w.id})">✕</button></td>
   </tr>`).join('');
 }
+
 function editTrab(id) {
   const w = S.workers.find(x => x.id === id);
   document.getElementById('mTId').value = id; document.getElementById('mTTit').textContent = 'Editar Trabajador';
@@ -209,6 +206,7 @@ function editTrab(id) {
   document.getElementById('mTJornada').value = w.jornada; document.getElementById('mTDias').value = w.dias;
   document.getElementById('mTPref1').value = w.pref1 || ''; openM('mTrab');
 }
+
 function guardarTrabajador() {
   const datos = {
     rut: document.getElementById('mTRut').value, nombre: document.getElementById('mTNombre').value,
@@ -222,226 +220,105 @@ function guardarTrabajador() {
   sv(); closeM('mTrab'); document.getElementById('mTId').value=''; ['mTRut','mTNombre'].forEach(id=>document.getElementById(id).value=''); renPersonal();
 }
 function elimTrab(id) { if(confirm('¿Eliminar?')) { S.workers = S.workers.filter(w=>w.id!==id); sv(); renPersonal(); } }
+
 function cargarEjemplo() {
   S.workers = [
-    {id:1, rut:'12.222.456-3', nombre:'Juan Pérez (Conserje)', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'M'},
-    {id:2, rut:'13.333.234-1', nombre:'Pedro González (Conserje)', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'T'},
-    {id:3, rut:'11.122.456-4', nombre:'Juana Andrade (Nochero)', cargo:'Nochero', renta:550000, jornada:42, dias:5, pref1:'N'},
-    {id:4, rut:'17.773.234-2', nombre:'María Soto (Aseo/Pivote)', cargo:'Aseo', renta:539000, jornada:42, dias:5, pref1:'M'},
+    {id:1, rut:'12.222.456-3', nombre:'Juan Pérez', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'M'},
+    {id:2, rut:'13.333.234-1', nombre:'Pedro González', cargo:'Conserje', renta:539000, jornada:42, dias:5, pref1:'T'},
+    {id:3, rut:'11.122.456-4', nombre:'Juana Andrade', cargo:'Nochero', renta:550000, jornada:42, dias:5, pref1:'N'},
+    {id:4, rut:'17.773.234-2', nombre:'María Soto', cargo:'Aseo', renta:539000, jornada:42, dias:5, pref1:'M'},
   ]; sv(); renPersonal();
 }
 
-// --- AUSENCIAS ---
 function ausKey() { return document.getElementById('mesGlobal').value; }
 function setAus(wid, dias) { const k = ausKey(); if(!S.ausencias[k]) S.ausencias[k]={}; if(!parseInt(dias)) delete S.ausencias[k][wid]; else S.ausencias[k][wid] = parseInt(dias); sv(); }
 function renAusGrid() {
   const g = document.getElementById('ausGrid'); if(!g) return; const aus = S.ausencias[ausKey()] || {};
   g.innerHTML = S.workers.map(w => `<div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);padding:5px;border-radius:2px">
     <span style="flex:1;font-size:12px;font-weight:600">${w.nombre}</span>
-    <input type="number" value="${aus[w.id]||0}" min="0" max="31" style="width:60px;padding:4px" placeholder="Días" onchange="setAus(${w.id}, this.value)"> <span style="font-size:10px">días ausente</span>
+    <input type="number" value="${aus[w.id]||0}" min="0" max="31" style="width:60px;padding:4px" onchange="setAus(${w.id}, this.value)"> <span style="font-size:10px">días ausente</span>
   </div>`).join('');
 }
 
-// --- MOTOR DE OPTIMIZACIÓN MATEMÁTICO (BIN PACKING & CONSISTENCY) ---
+// --- NUEVO MOTOR CON RELLENO DE HORAS (TRASLAPES) ---
 function hOrdMes(w, dim) { return w.jornada * (dim/7); }
-function hDec(h) { const[hh,mm] = h.split(':').map(Number); return hh + mm/60; }
-function hSal(tc) { let s = hDec(T[tc].s); if(tc==='N') s+=24; return s; } // Noche cruza día
 
 function schedule(workers, year, month, aus) {
   const dim = new Date(year, month, 0).getDate();
   const ws = {}; 
   const dA = {}; 
-  const gaps = [];
-  const tCodes = ['M', 'T', 'N'];
-  
-  workers.forEach(w => { ws[w.id] = { ha:0, da:0, con:0, ulS:null, asig:{}, ex:0 }; });
-
-  // 1. Asignación principal (Conserjes / Nocheros)
+  const uncov = [];
   const mainWorkers = workers.filter(w => w.cargo !== 'Aseo');
   const aseoWorkers = workers.filter(w => w.cargo === 'Aseo');
+  
+  workers.forEach(w => { ws[w.id] = { ha:0, asig:{}, ex:0, horasSemana: Array(6).fill(0) }; });
 
-  function getPuntaje(w, day, tc, dow) {
-    const s = ws[w.id]; const a = aus[w.id];
-    if (a && day <= a) return -9999; // Vacaciones/Licencia
-    if (dow === 0) return -9999; // Prioriza descanso Domingo
-    if (dow === 6 && w.dias === 5) return -9999; // No trabaja sábado
-    if (s.asig[day]) return -9999; // Ya tiene turno
-    if (s.con >= 6) return -9999; // Ley: 1 libre cada 6
-    if (s.ulS !== null) { let d = hDec(T[tc].e) - s.ulS; if(d<0) d+=24; if(d < LEY.descansMin) return -9999; } // Descanso 12h
-    
-    // Algoritmo de Consistencia (Bienestar)
-    let score = 100; 
-    const turnoAyer = s.asig[day-1];
-    if (turnoAyer === tc) score += 200; // MUCHISIMA prioridad a mantener el mismo turno para no enloquecer el reloj biológico
-    if (w.pref1 === tc) score += 50; 
-    
-    // Equidad de horas (si alguien tiene pocas horas asignadas, darle prioridad)
-    const metaMes = hOrdMes(w, dim);
-    const porcentajeLlenado = s.ha / metaMes;
-    score -= (porcentajeLlenado * 100); 
-
-    // Bloqueo duro de sobretiempo legal
-    if (s.ha + T[tc].h > metaMes + (LEY.extrasMaxSemana * 4.33)) return -9999;
-
-    return score;
+  function canWork(w, day, tcH, dow) {
+    if (aus[w.id] && day <= aus[w.id]) return false; // Ausente
+    if (dow === 0 && ws[w.id].asig[day-1] && ws[w.id].asig[day-2] && ws[w.id].asig[day-3] && ws[w.id].asig[day-4] && ws[w.id].asig[day-5] && ws[w.id].asig[day-6]) return false; // 1 libre cada 6
+    if (ws[w.id].asig[day]) return false; // 1 turno por dia
+    const semana = Math.floor((day-1)/7);
+    if (ws[w.id].horasSemana[semana] + tcH > w.jornada + LEY.extrasMaxSemana) return false; // Límite legal semanal
+    return true;
   }
 
+  // PASO 1: Cobertura Base (Asegurar M, T, N en cada día)
   for(let day=1; day<=dim; day++) {
     const dow = new Date(year, month-1, day).getDay();
-    dA[day] = {};
-    mainWorkers.forEach(w => { if(day>1 && !ws[w.id].asig[day-1]) { ws[w.id].con=0; ws[w.id].ulS=null; } });
+    dA[day] = { M:[], T:[], N:[], R:[], P:[] };
     
-    tCodes.forEach(tc => {
-      let candidatos = mainWorkers.map(w => ({ w: w, score: getPuntaje(w, day, tc, dow) })).filter(x => x.score > -1000);
-      candidatos.sort((a,b) => b.score - a.score); // Mayor score primero
+    ['M', 'T', 'N'].forEach(tc => {
+      // Priorizar a quien le falten MÁS horas para su meta mensual, ignorando un poco las preferencias si están bajos.
+      let cands = mainWorkers.map(w => ({ 
+        w: w, 
+        score: (hOrdMes(w, dim) - ws[w.id].ha)*10 + (w.pref1===tc ? 5 : 0) - (dow===0 ? 50 : 0)
+      })).filter(x => canWork(x.w, day, T[tc].h, dow));
+      
+      cands.sort((a,b) => b.score - a.score); // Mayor necesidad de horas primero
 
-      if (candidatos.length > 0) {
-        const elegido = candidatos[0].w;
+      if (cands.length > 0) {
+        let elegido = cands[0].w;
         ws[elegido.id].asig[day] = tc;
         ws[elegido.id].ha += T[tc].h;
-        ws[elegido.id].da++; ws[elegido.id].con++; ws[elegido.id].ulS = hSal(tc);
-        dA[day][tc] = elegido.id;
-      } else if (dow !== 0) {
-        gaps.push({day, tc, dow});
+        ws[elegido.id].horasSemana[Math.floor((day-1)/7)] += T[tc].h;
+        dA[day][tc].push(elegido.id);
+      } else {
+        uncov.push({day, tc});
       }
     });
 
-    // 2. Lógica de PIVOTES (Aseo cubre los traslapes de 15:00 y 22:00)
+    // Pivote de Aseo (Cubriendo puerta y colaciones)
     aseoWorkers.forEach(aw => {
-        if (!aus[aw.id] || day > aus[aw.id]) {
-            if (dow !== 0 && (dow !== 6 || aw.dias === 6)) { // Si es laborable para él
-                ws[aw.id].asig[day] = 'P'; // P = Pivote (Asume cobertura de esos 2 baches de 30 min y su aseo general)
-                ws[aw.id].ha += 7.5; // Jornada estandar
-                ws[aw.id].da++;
-            }
-        }
+      if (canWork(aw, day, 7.5, dow) && dow !== 0) {
+        ws[aw.id].asig[day] = 'P';
+        ws[aw.id].ha += 7.5;
+        ws[aw.id].horasSemana[Math.floor((day-1)/7)] += 7.5;
+        dA[day]['P'].push(aw.id);
+      }
     });
   }
 
-  // Cálculo final Horas Extras
-  workers.forEach(w => { const o = hOrdMes(w, dim); ws[w.id].ex = Math.max(0, ws[w.id].ha - o); });
-  const totTurnos = 3 * dim; 
-  const okTurnos = Object.values(dA).reduce((acc, obj) => acc + Object.keys(obj).length, 0);
-  
-  return { ws, dA, gaps, cob: Math.round(okTurnos/totTurnos*100), dim };
-}
-
-function generarTurnos() {
-  if(!S.workers.length){ alert('Agrega personal primero.'); return; }
-  const mesVal = document.getElementById('mesGlobal').value;
-  const [year, month] = mesVal.split('-').map(Number);
-  const aus = S.ausencias[mesVal] || {};
-  
-  const result = schedule(S.workers, year, month, aus);
-  S.lastSched = { ...result, mesVal, workers: [...S.workers] };
-  sv();
-  renTablaTurnos(result, S.workers, year, month);
-  nav('turnos'); // forzar vista
-}
-
-function renTablaTurnos(res, workers, year, month) {
-  const dim = res.dim;
-  let html = `<div class="stats-row" style="margin-top:15px">
-    <div class="stat ${res.cob===100?'ok':'danger'}"><div class="stat-val">${res.cob}%</div><div class="stat-lbl">Cobertura</div></div>
-    <div class="stat ${res.gaps.length?'danger':'ok'}"><div class="stat-val">${res.gaps.length}</div><div class="stat-lbl">Turnos sin cubrir</div></div>
-  </div>`;
-
-  html += `<div class="cal-grid" style="grid-template-columns:130px repeat(${dim},minmax(20px,1fr))">`;
-  html += `<div class="cal-hcell" style="text-align:left;padding-left:6px">Trabajador</div>`;
-  for(let d=1; d<=dim; d++){ const dow=new Date(year, month-1, d).getDay(); html+=`<div class="cal-hcell">${DSW[dow].slice(0,1)}<br>${d}</div>`; }
-  
-  workers.forEach(w => {
-    html += `<div class="cal-name">${w.nombre.split(' ')[0]} <span style="font-size:8px;color:var(--muted)">(${w.cargo.slice(0,3)})</span></div>`;
-    for(let d=1; d<=dim; d++){
-      const tc = res.ws[w.id].asig[d];
-      if(tc === 'P') html += `<div class="cal-cell P" title="Apoya en traslape">Piv</div>`;
-      else if(tc) html += `<div class="cal-cell ${tc}">${tc}</div>`;
-      else html += `<div class="cal-cell" style="color:#ccc">·</div>`;
+  // PASO 2: Relleno Forzado para Evitar Subutilización (Traslapes "R")
+  // Si alguien no llegó a sus horas, le asignamos turnos de refuerzo superpuestos en días libres
+  mainWorkers.forEach(w => {
+    let meta = hOrdMes(w, dim);
+    let iteraciones = 0;
+    while(ws[w.id].ha < meta - 7 && iteraciones < 31) { 
+      let bestDay = -1;
+      // Buscar el mejor día para meterle un turno R (Refuerzo 11:00-18:30)
+      for(let d=1; d<=dim; d++) {
+        let dow = new Date(year, month-1, d).getDay();
+        if(canWork(w, d, T.R.h, dow)) { bestDay = d; break; }
+      }
+      if (bestDay > 0) {
+        ws[w.id].asig[bestDay] = 'R';
+        ws[w.id].ha += T.R.h;
+        ws[w.id].horasSemana[Math.floor((bestDay-1)/7)] += T.R.h;
+        dA[bestDay]['R'].push(w.id);
+      }
+      iteraciones++;
     }
   });
-  html += `</div><p style="font-size:11px;color:var(--muted);margin-top:8px">M = Mañana, T = Tarde, N = Noche, Piv = Pivote (Aseo cubre puerta 30 min).</p>`;
-  document.getElementById('turnResult').innerHTML = html;
-}
 
-// --- ASESOR FINANCIERO MATEMÁTICO ---
-function renderAsesorMatematico() {
-  const box = document.getElementById('informeResult');
-  if(!S.lastSched) { box.innerHTML = '<div class="alert alert-warn">Debes Optimizar Turnos primero.</div>'; return; }
-  
-  const sc = S.lastSched;
-  let totalSueldos = 0;
-  let totalCostoExtras = 0;
-  let totalHorasExtras = 0;
-
-  let tablaHtml = `<div class="table-wrap"><table><thead><tr><th>Trabajador</th><th>H. Ley Mensual</th><th>H. Asignadas</th><th>Utilización</th><th>H. Extras</th><th>Costo Extras a Pagar</th></tr></thead><tbody>`;
-  
-  sc.workers.forEach(w => {
-    const s = sc.ws[w.id];
-    const hMeta = hOrdMes(w, sc.dim);
-    const util = Math.min(100, (s.ha / hMeta) * 100);
-    
-    // Formula Financiera: Base / 30 * 28 / jornada * 1.5 recargo
-    const valorHoraOrd = (w.renta / 30) * 28 / w.jornada;
-    const valorHoraExtra = valorHoraOrd * LEY.recargo;
-    const costoExtraW = s.ex * valorHoraExtra;
-
-    totalSueldos += w.renta;
-    totalCostoExtras += costoExtraW;
-    totalHorasExtras += s.ex;
-
-    let colorEx = s.ex > 0 ? 'var(--rust)' : 'var(--success)';
-    tablaHtml += `<tr>
-      <td><strong>${w.nombre}</strong></td>
-      <td class="td-mono">${hMeta.toFixed(1)}</td>
-      <td class="td-mono">${s.ha.toFixed(1)}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:5px"><div class="prog-bar"><div class="prog-fill ${util<90?'prog-warn':'prog-ok'}" style="width:${util}%"></div></div><span class="td-mono" style="font-size:11px">${util.toFixed(0)}%</span></div>
-      </td>
-      <td class="td-mono" style="color:${colorEx};font-weight:bold">${s.ex.toFixed(1)}</td>
-      <td class="td-mono" style="color:${colorEx}">${clp(costoExtraW)}</td>
-    </tr>`;
-  });
-  tablaHtml += `</tbody></table></div>`;
-
-  // ANÁLISIS DE CONTRATACIÓN VS EXTRAS
-  const costoNuevoTrabajador = LEY.imm + LEY.gratTope; // $539.000 + $213.437
-  let recHtml = '';
-  
-  if (totalCostoExtras > costoNuevoTrabajador || sc.gaps.length > 5) {
-    const ahorro = totalCostoExtras - costoNuevoTrabajador;
-    recHtml = `
-      <div class="bloque" style="border-left: 4px solid var(--success)">
-        <div class="bloque-head" style="background:#155724">✅ RECOMENDACIÓN ESTRATÉGICA: CONTRATAR</div>
-        <div class="bloque-body">
-          <p style="font-size:14px;line-height:1.6">El costo proyectado en horas extras es de <strong>${clp(totalCostoExtras)}</strong>, lo cual supera el costo de un nuevo contrato base (Sueldo Mínimo + Gratificación Legal Art.50: <strong>${clp(costoNuevoTrabajador)}</strong>).</p>
-          <p style="margin-top:10px;font-size:14px;color:var(--success);font-weight:bold">Ahorro mensual directo estimado al contratar 1 persona: ${clp(ahorro)}</p>
-          <p style="margin-top:10px;font-size:13px;color:var(--muted)">Acción: Contratar a 1 Nochero/Conserje en formato 6 Días, y eliminar todo sobretiempo de la plantilla actual. Esto además mitigará los ${sc.gaps.length} turnos descubiertos este mes.</p>
-        </div>
-      </div>`;
-  } else if (totalHorasExtras > 0) {
-    recHtml = `
-      <div class="bloque" style="border-left: 4px solid var(--warn)">
-        <div class="bloque-head" style="background:#856404">⚠️ RECOMENDACIÓN ESTRATÉGICA: AJUSTE DE JORNADA (5 a 6 DÍAS)</div>
-        <div class="bloque-body">
-          <p style="font-size:14px;line-height:1.6">El costo en horas extras (<strong>${clp(totalCostoExtras)}</strong>) NO justifica aún contratar a otra persona (Costo: ${clp(costoNuevoTrabajador)}).</p>
-          <p style="margin-top:10px;font-size:13px;color:var(--slate)"><strong>Acción Operativa:</strong> Tienes personal asignado a 5 días a la semana. Sugerimos pactar una modificación de contrato temporal para que personal rotativo trabaje <strong>6 días a la semana</strong> (bajando su carga diaria de 8.4h a 7h). Esto te permitirá cubrir sábados de forma orgánica sin generar recargos del 50%.</p>
-        </div>
-      </div>`;
-  } else {
-    recHtml = `<div class="alert alert-ok">✅ <strong>Operación Óptima:</strong> Cero horas extras incurridas. Utilización eficiente de la plantilla y los pivotes de aseo.</div>`;
-  }
-
-  box.innerHTML = `
-    <div class="stats-row">
-      <div class="stat"><div class="stat-val">${clp(totalSueldos)}</div><div class="stat-lbl">Nómina Base</div></div>
-      <div class="stat ${totalHorasExtras>0?'danger':'ok'}"><div class="stat-val">${clp(totalCostoExtras)}</div><div class="stat-lbl">Costo Penalización Extras</div></div>
-      <div class="stat"><div class="stat-val">${clp(costoNuevoTrabajador)}</div><div class="stat-lbl">Costo Contratar 1 Base</div></div>
-    </div>
-    <h4 style="font-size:14px;font-weight:700;margin-bottom:10px">Resumen de Utilización y Sobrecostos</h4>
-    ${tablaHtml}
-    ${recHtml}
-  `;
-}
-</script>
-</body>
-</html>
+  // Calcular extras finales
+  workers.
