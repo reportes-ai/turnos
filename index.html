@@ -41,7 +41,7 @@
                 </div>
                 <div class="header-info">
                     <span id="monthDisplay"></span>
-                    <span id="userDisplay">v1.0</span>
+                    <span id="userDisplay">v2.0</span>
                 </div>
             </div>
             
@@ -131,9 +131,9 @@
                         </div>
                         <div class="form-group">
                             <label>Turnos Disponibles</label>
-                            <div id="shiftsConfig"></div>
+                            <div id="shiftsConfig" style="display: grid; gap: 12px; margin-top: 12px;"></div>
                         </div>
-                        <button class="btn btn-primary" onclick="App.generateOptimalSchedule()" style="margin-top: 16px;">Generar Horarios Optimizados</button>
+                        <button class="btn btn-primary" onclick="App.generateOptimalSchedule()" style="margin-top: 16px; width: 100%;">Generar Horarios Optimizados</button>
                     </div>
                     <div id="scheduleResult" style="display: none; margin-top: 24px;"></div>
                 </div>

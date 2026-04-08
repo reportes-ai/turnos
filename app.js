@@ -135,7 +135,6 @@ class App {
             return;
         }
         
-        // Reset modal para nuevo trabajador
         document.getElementById('newWorkerModal').dataset.workerId = '';
         document.getElementById('newWorkerModal').dataset.companyId = '';
         document.querySelector('#newWorkerModal .modal-header span').textContent = 'Nuevo Trabajador';
@@ -304,20 +303,18 @@ class App {
         
         const shiftsConfig = document.getElementById('shiftsConfig');
         shiftsConfig.innerHTML = `
-            <div style="display: grid; gap: 12px;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" class="shift-option" value="mañana" checked> 
-                    Mañana (08:00 - 15:15, 6:45h)
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" class="shift-option" value="tarde" checked> 
-                    Tarde (15:00 - 22:15, 6:45h)
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" class="shift-option" value="noche" checked> 
-                    Noche (22:00 - 08:15, 9:45h)
-                </label>
-            </div>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                <input type="checkbox" class="shift-option" value="mañana" checked style="width: 18px; height: 18px; cursor: pointer;"> 
+                <span>Mañana (08:00 - 15:15, 6:45h)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                <input type="checkbox" class="shift-option" value="tarde" checked style="width: 18px; height: 18px; cursor: pointer;"> 
+                <span>Tarde (15:00 - 22:15, 6:45h)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px;">
+                <input type="checkbox" class="shift-option" value="noche" checked style="width: 18px; height: 18px; cursor: pointer;"> 
+                <span>Noche (22:00 - 08:15, 9:45h)</span>
+            </label>
         `;
     }
     
@@ -563,7 +560,6 @@ class App {
     }
 }
 
-// ==================== INITIALIZE ON LOAD ====================
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
 });
