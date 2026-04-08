@@ -12,7 +12,6 @@ class App {
     }
     
     static setupEventListeners() {
-        // Cerrar modales al hacer clic fuera
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -24,15 +23,12 @@ class App {
     
     // ==================== PANEL NAVIGATION ====================
     static showPanel(panelName) {
-        // Ocultar todos los paneles
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.getElementById(panelName + '-panel').classList.add('active');
         
-        // Actualizar nav items
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         event.target?.classList.add('active');
         
-        // Actualizar título
         const titles = {
             'empresas': 'Administración de Empresas',
             'personal': 'Gestión de Personal',
@@ -43,7 +39,6 @@ class App {
         };
         document.getElementById('pageTitle').textContent = titles[panelName] || panelName;
         
-        // Cargar datos específicos
         this.loadPanelData(panelName);
     }
     
@@ -140,6 +135,39 @@ class App {
             return;
         }
         
+        // Reset modal para nuevo trabajador
+        document.getElementById('newWorkerModal').dataset.workerId = '';
+        document.getElementById('newWorkerModal').dataset.companyId = '';
+        document.querySelector('#newWorkerModal .modal-header span').textContent = 'Nuevo Trabajador';
+        document.querySelector('#newWorkerModal .btn-primary').textContent = 'Agregar Trabajador';
+        document.getElementById('newWorkerModal').querySelector('form').reset();
+        
+        this.showModal('newWorkerModal');
+    }
+    
+    static editWorker(companyId, workerId) {
+        const worker = Worker.getById(companyId, workerId);
+        
+        if (!worker) {
+            alert('Trabajador no encontrado');
+            return;
+        }
+        
+        document.getElementById('workerRut').value = worker.rut;
+        document.getElementById('workerName').value = worker.name;
+        document.getElementById('workerPosition').value = worker.position;
+        document.getElementById('workerSalary').value = worker.salary;
+        document.getElementById('workerJornada').value = worker.jornada;
+        document.getElementById('workerDays').value = worker.days;
+        document.getElementById('workerPreference').value = worker.preference;
+        document.getElementById('workerTimeOff').value = worker.timeOff;
+        
+        document.querySelector('#newWorkerModal .modal-header span').textContent = 'Editar Trabajador';
+        document.querySelector('#newWorkerModal .btn-primary').textContent = 'Guardar Cambios';
+        
+        document.getElementById('newWorkerModal').dataset.workerId = workerId;
+        document.getElementById('newWorkerModal').dataset.companyId = companyId;
+        
         this.showModal('newWorkerModal');
     }
     
@@ -185,8 +213,10 @@ class App {
         event.preventDefault();
         
         const companyId = parseInt(document.getElementById('selectCompany').value);
+        const modal = document.getElementById('newWorkerModal');
+        const isEditing = modal.dataset.workerId;
         
-        if (!companyId) {
+        if (!companyId && !isEditing) {
             alert('⚠️ Selecciona una empresa primero');
             return;
         }
@@ -202,22 +232,31 @@ class App {
             timeOff: document.getElementById('workerTimeOff').value
         };
         
-        // Validar campos
         if (!workerData.rut || !workerData.name || !workerData.position || 
             !workerData.salary || !workerData.jornada || !workerData.days) {
             alert('Completa todos los campos requeridos');
             return;
         }
         
-        // Validar que la jornada sea legal
         if (!LegalCalculator.validateJornada(workerData.jornada)) {
             alert('Jornada inválida. Debe ser 40, 42 o 44 horas');
             return;
         }
         
-        Worker.create(companyId, workerData);
-        this.state = Storage.get();
+        if (isEditing) {
+            const workerId = parseInt(modal.dataset.workerId);
+            const editCompanyId = parseInt(modal.dataset.companyId);
+            Worker.update(editCompanyId, workerId, workerData);
+            
+            delete modal.dataset.workerId;
+            delete modal.dataset.companyId;
+            document.querySelector('#newWorkerModal .modal-header span').textContent = 'Nuevo Trabajador';
+            document.querySelector('#newWorkerModal .btn-primary').textContent = 'Agregar Trabajador';
+        } else {
+            Worker.create(companyId, workerData);
+        }
         
+        this.state = Storage.get();
         this.closeModal('newWorkerModal');
         document.getElementById('newWorkerModal').querySelector('form').reset();
         this.loadWorkers();
@@ -239,7 +278,6 @@ class App {
         select.innerHTML = '<option value="">Selecciona empresa</option>' +
             companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
         
-        // Establecer mes próximo por defecto
         const nextMonth = new Date();
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         document.getElementById('turnosMonth').valueAsDate = nextMonth;
@@ -264,7 +302,6 @@ class App {
         
         document.getElementById('scheduleConfig').style.display = 'block';
         
-        // Generar opciones de turnos
         const shiftsConfig = document.getElementById('shiftsConfig');
         shiftsConfig.innerHTML = `
             <div style="display: grid; gap: 12px;">
@@ -303,7 +340,6 @@ class App {
             return;
         }
         
-        // Obtener turnos seleccionados
         const selectedShifts = Array.from(document.querySelectorAll('.shift-option:checked'))
             .map(el => el.value);
         
@@ -312,7 +348,6 @@ class App {
             return;
         }
         
-        // Ejecutar optimizador
         try {
             const optimized = Scheduler.optimize(workers, coverageStart, coverageEnd, selectedShifts);
             this.displayScheduleResult(optimized, companyId, monthStr);
@@ -345,12 +380,10 @@ class App {
                 </div>
         `;
         
-        // Mostrar problemas si existen
         if (result.issues.length > 0) {
             html += `<div class="alert alert-warning">⚠️ ${result.issues.length} problemas detectados</div>`;
         }
         
-        // Mostrar recomendaciones
         if (result.recommendations.length > 0) {
             html += `<h3 style="color: var(--secondary); margin: 24px 0 16px;">Recomendaciones</h3>`;
             result.recommendations.forEach(rec => {
@@ -364,7 +397,6 @@ class App {
             });
         }
         
-        // Botones de acción
         html += `
             <div style="margin-top: 24px; display: flex; gap: 12px;">
                 <button class="btn btn-success" onclick="App.saveSchedule(${companyId}, '${monthStr}')">💾 Guardar Turnos</button>
@@ -378,7 +410,6 @@ class App {
     }
     
     static saveSchedule(companyId, monthStr) {
-        // Implementar guardado de turnos
         alert('Turnos guardados para ' + monthStr);
     }
     
@@ -398,16 +429,13 @@ class App {
             return;
         }
         
-        // Horas ordinarias mensuales
         const ordinaryMonthly = jornada * 4.33;
         const extraHours = Math.max(0, hours - ordinaryMonthly);
         
-        // Valor hora
         const hourValue = LegalCalculator.calculateHourValue(salary, jornada);
         const extraPayment = LegalCalculator.calculateExtraHourPayment(extraHours, hourValue);
         const bonus = LegalCalculator.calculateLegalBonus(salary);
         
-        // Validar compliance
         const worker = { jornada, salary };
         const compliance = LegalCalculator.validateCompliance(worker, hours);
         
@@ -482,7 +510,6 @@ class App {
             reportHTML = '<p>Análisis de cumplimiento próximamente</p>';
         }
         
-        // Abrir en nueva ventana para impresión
         const printWindow = window.open('', '', 'width=1000,height=800');
         printWindow.document.write(reportHTML);
         printWindow.document.close();
@@ -499,7 +526,6 @@ class App {
     }
     
     static refreshUI() {
-        // Actualizar información general
         const now = new Date();
         document.getElementById('monthDisplay').textContent = 
             now.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
