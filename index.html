@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GesturnoS — Ley 40 Horas 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0d1117;--paper:#f4f1eb;--rust:#c0392b;--gold:#b8860b;
+  --slate:#2c3e50;--muted:#6c757d;--line:#d4c9b0;--surface:#fffef9;
+  --success:#27ae60;--warn:#e67e22;--danger:#c0392b;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+body{font-family:var(--sans);background:var(--paper);color:var(--ink);min-height:100vh}
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--ink);color:var(--paper);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{padding:24px 20px;border-bottom:1px solid #2d3748;font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+.logo span{display:block;font-size:10px;color:#6c757d;font-weight:400;margin-top:4px;letter-spacing:1px}
+.nav{padding:16px 0;flex:1}
+.nav-section{margin-bottom:8px}
+.nav-label{padding:8px 20px;font-size:10px;color:#4a5568;text-transform:uppercase;letter-spacing:2px;font-weight:600}
+.nav-btn{width:100%;padding:10px 20px;background:none;border:none;color:#94a3b8;cursor:pointer;font-family:var(--sans);font-size:13px;text-align:left;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent}
+.nav-btn:hover{background:rgba(255,255,255,.05);color:var(--paper)}
+.nav-btn.active{background:rgba(184,134,11,.1);border-left-color:var(--gold);color:var(--gold);font-weight:600}
+.sidebar-footer{padding:16px 20px;border-top:1px solid #2d3748;font-size:11px;color:#4a5568;font-family:var(--mono)}
+
+/* MAIN */
+.main{background:var(--paper);overflow:hidden;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:2px solid var(--line);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:18px;font-weight:700;color:var(--ink)}
+.topbar-meta{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.content{flex:1;overflow-y:auto;padding:32px}
+
+/* PANELS */
+.panel{display:none}.panel.active{display:block}
+.panel-title{font-size:22px;font-weight:700;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid var(--line)}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.field input,.field select,.field textarea{padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:2px;font-family:var(--sans);font-size:13px;color:var(--ink);transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold)}
+.field textarea{resize:vertical;min-height:80px}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:2px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
+.btn-primary{background:var(--ink);color:var(--paper)}.btn-primary:hover{background:var(--slate)}
+.btn-gold{background:var(--gold);color:white}.btn-gold:hover{background:#9a7209}
+.btn-rust{background:var(--rust);color:white}.btn-rust:hover{background:#a93226}
+.btn-outline{background:none;border:1px solid var(--line);color:var(--ink)}.btn-outline:hover{border-color:var(--ink)}
+.btn-sm{padding:6px 14px;font-size:11px}
+.btn-ai{background:linear-gradient(135deg,#1a1a2e,#16213e);color:var(--gold);border:1px solid var(--gold);font-family:var(--mono);font-size:11px;letter-spacing:1px}
+.btn-ai:hover{background:rgba(184,134,11,.1)}
+.btn-ai.loading{opacity:.7;cursor:wait}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* TABLES */
+.table-wrap{border:1px solid var(--line);border-radius:2px;overflow:auto;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--ink);color:var(--paper);padding:10px 14px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover{background:rgba(184,134,11,.04)}
+.td-mono{font-family:var(--mono);font-size:12px}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 8px;border-radius:2px;font-size:11px;font-weight:600;font-family:var(--mono)}
+.badge-ok{background:#d4edda;color:#155724}.badge-warn{background:#fff3cd;color:#856404}
+.badge-danger{background:#f8d7da;color:#721c24}.badge-info{background:#d1ecf1;color:#0c5460}
+.badge-muted{background:var(--line);color:var(--muted)}
+
+/* ALERTS */
+.alert{padding:14px 18px;border-radius:2px;border-left:4px solid;margin-bottom:16px;font-size:13px;line-height:1.6}
+.alert-ok{background:#d4edda;border-color:var(--success);color:#155724}
+.alert-warn{background:#fff3cd;border-color:var(--warn);color:#856404}
+.alert-danger{background:#f8d7da;border-color:var(--danger);color:#721c24}
+.alert-info{background:#d1ecf1;border-color:#0c5460;color:#0c5460}
+.alert-ai{background:linear-gradient(135deg,#0d1117,#1a1a2e);border-color:var(--gold);color:var(--paper)}
+.alert-ai strong{color:var(--gold)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.stat{background:var(--surface);border:1px solid var(--line);padding:16px;border-radius:2px;border-top:3px solid var(--gold)}
+.stat-val{font-size:24px;font-weight:700;font-family:var(--mono);color:var(--ink)}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.stat.danger{border-top-color:var(--rust)}.stat.ok{border-top-color:var(--success)}
+
+/* CALENDAR GRID */
+.cal-grid{display:grid;grid-template-columns:auto repeat(31,minmax(36px,1fr));border:1px solid var(--line);border-radius:2px;overflow:auto;font-size:11px;font-family:var(--mono)}
+.cal-header{background:var(--ink);color:var(--paper);padding:6px 4px;text-align:center;font-weight:600;border-right:1px solid #2d3748;white-space:nowrap}
+.cal-worker{background:var(--surface);padding:6px 8px;font-size:11px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;font-weight:600}
+.cal-cell{padding:4px 2px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;min-width:36px}
+.cal-cell.M{background:#e3f2fd;color:#1565c0}
+.cal-cell.T{background:#e8f5e9;color:#2e7d32}
+.cal-cell.N{background:#1a1a2e;color:#b8860b}
+.cal-cell.D{background:#fff3e0;color:#e65100}
+.cal-cell.libre{background:var(--line);color:var(--muted)}
+.cal-cell.festivo{background:#f3e5f5;color:#6a1b9a}
+.cal-cell.fuera{background:#fce4ec;color:#880e4f}
+.cal-cell.dom{background:var(--paper);opacity:.5}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--line);width:90%;max-width:680px;max-height:90vh;overflow-y:auto;border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:16px;font-weight:700}
+.modal-head button{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);line-height:1}
+.modal-body{padding:24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+
+/* AI RESPONSE */
+.ai-box{background:linear-gradient(135deg,#0d1117,#1a1a2e);border:1px solid var(--gold);border-radius:2px;padding:20px;margin-bottom:24px;color:var(--paper)}
+.ai-box h4{color:var(--gold);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.ai-box p{font-size:13px;line-height:1.7;color:#cbd5e0;margin-bottom:8px}
+.ai-box ul{padding-left:16px;font-size:13px;line-height:1.8;color:#cbd5e0}
+.ai-box .ai-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #2d3748}
+.ai-box .ai-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.ai-streaming{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:.8}50%{opacity:.4}}
+
+/* PRINT */
+@media print{
+  .sidebar,.topbar,.no-print{display:none!important}
+  .main{display:block}
+  .content{padding:0}
+  .print-doc{padding:40px;font-family:Arial,sans-serif;font-size:12px;color:#000}
+  .print-doc h1{font-size:18px;margin-bottom:4px}
+  .print-doc table{width:100%;border-collapse:collapse;margin-top:16px}
+  .print-doc th,td{border:1px solid #999;padding:6px;font-size:11px}
+  .print-doc .firma-block{margin-top:40px;display:flex;gap:60px}
+  .print-doc .firma-line{border-top:1px solid #000;padding-top:4px;width:200px;font-size:10px}
+}
+
+/* MISC */
+.section-divider{border:none;border-top:1px solid var(--line);margin:24px 0}
+.chip{display:inline-flex;align-items:center;gap:4px;background:var(--line);padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer}
+.chip.M{background:#bbdefb;color:#1565c0}.chip.T{background:#c8e6c9;color:#2e7d32}.chip.N{background:#1a1a2e;color:var(--gold)}
+.loading-dots::after{content:'';animation:dots 1.2s steps(3,end) infinite}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+.tag-libre{color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">GesturnoS<span>Ley 40 Horas · Chile 2026</span></div>
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-label">Principal</div>
+      <button class="nav-btn active" onclick="showPanel('empresas')">🏢 Empresas</button>
+      <button class="nav-btn" onclick="showPanel('personal')">👥 Personal</button>
+      <button class="nav-btn" onclick="showPanel('turnos')">📅 Turnos IA</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Documentos</div>
+      <button class="nav-btn" onclick="showPanel('reportes')">🖨️ Reportes</button>
+      <button class="nav-btn" onclick="showPanel('historial')">📚 Historial</button>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Referencia</div>
+      <button class="nav-btn" onclick="showPanel('calculos')">💰 Calculadora</button>
+      <button class="nav-btn" onclick="showPanel('normativa')">⚖️ Normativa</button>
+    </div>
+  </nav>
+  <div class="sidebar-footer">v2.0 · 42h desde 26/04/2026</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="pageTitle">Empresas</div>
+      <div class="topbar-meta" id="pageSubtitle">Selecciona o crea una empresa</div>
+    </div>
+    <div class="btn-row no-print">
+      <select id="globalCompanySelect" style="padding:8px 12px;border:1px solid var(--line);border-radius:2px;font-size:12px;background:var(--surface)" onchange="globalCompanyChange()">
+        <option value="">— Empresa —</option>
+      </select>
+      <span id="topbarMes" style="font-family:var(--mono);font-size:12px;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- PANEL EMPRESAS -->
+    <div class="panel active" id="panel-empresas">
+      <div class="panel-title">🏢 Empresas</div>
+      <div class="btn-row" style="margin-bottom:20px">
+        <button class="btn btn-primary" onclick="openModal('modalEmpresa')">+ Nueva Empresa</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nombre</th><th>RUT/ID</th><th>Contacto</th><th>Trabajadores</th><th>Creado</th><th></th></tr></thead>
+          <tbody id="tbEmpresaas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL PERSONAL -->
+    <div class="panel" id="panel-personal">
+      <div class="panel-title">👥 Personal</div>
+      <div class="btn-row" style="margin-bottom:20px">
+        <button class="btn btn-primary" onclick="openModal('modalTrabajador')">+ Agregar Trabajador</button>
+        <button class="btn btn-outline" onclick="importarEjemplo()">📋 Cargar Ejemplo</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>RUT</th><th>Nombre</th><th>Cargo</th><th>Renta</th><th>Jornada</th><th>Días/Sem</th>
+              <th>Pref 1</th><th>Pref 2</th><th>Ausencia</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="tbPersonal"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PANEL TURNOS IA -->
+    <div class="panel" id="panel-turnos">
+      <div class="panel-title">📅 Optimizador Inteligente de Turnos</div>
+
+      <div class="form-grid" style="max-width:700px">
+        <div class="field">
+          <label>Mes a programar</label>
+          <input type="month" id="mesTurnos">
+        </div>
+        <div class="field">
+          <label>Cobertura horaria inicio</label>
+          <input type="time" id="cobInicio" value="00:00">
+        </div>
+        <div class="field">
+          <label>Cobertura horaria fin</label>
+          <input type="time" id="cobFin" value="23:59">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Turnos disponibles</div>
+        <div class="btn-row">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="checkbox" id="ckM" checked> <span class="chip M">☀️ Mañana 08:00–15:15</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="checkbox" id="ckT" checked> <span class="chip T">🌤 Tarde 15:00–22:15</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+            <input type="checkbox" id="ckN" checked> <span class="chip N">🌙 Noche 22:00–08:15</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:28px">
+        <button class="btn btn-primary" onclick="generarTurnos()">⚡ Calcular Turnos</button>
+        <button class="btn btn-ai" id="btnIA" onclick="analizarConIA()">✦ Analizar con IA</button>
+        <button class="btn btn-outline" onclick="guardarMes()">💾 Guardar Mes</button>
+      </div>
+
+      <div id="iaBox" style="display:none"></div>
+      <div id="turnResult"></div>
+    </div>
+
+    <!-- PANEL REPORTES -->
+    <div class="panel" id="panel-reportes">
+      <div class="panel-title">🖨️ Reportes y Documentos</div>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:24px">Genera documentos legales del mes calculado. Usa el panel de Turnos IA primero.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px;border-top:3px solid var(--gold)">
+          <div style="font-weight:700;margin-bottom:8px">📋 Resumen Mensual</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Tabla completa de turnos + estadísticas + análisis IA</p>
+          <button class="btn btn-outline btn-sm" onclick="imprimirResumen()">Imprimir / PDF</button>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px;border-top:3px solid var(--gold)">
+          <div style="font-weight:700;margin-bottom:8px">📄 Avisos a Trabajadores</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Carta individual con horario del mes para firma</p>
+          <button class="btn btn-outline btn-sm" onclick="imprimirAvisos()">Imprimir / PDF</button>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px;border-top:3px solid var(--rust)">
+          <div style="font-weight:700;margin-bottom:8px">⏰ Pactos Horas Extras</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Solo trabajadores con horas extras asignadas</p>
+          <button class="btn btn-outline btn-sm" onclick="imprimirPactos()">Imprimir / PDF</button>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px;border-top:3px solid var(--slate)">
+          <div style="font-weight:700;margin-bottom:8px">💾 Exportar JSON</div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Backup de todos los datos de la empresa</p>
+          <button class="btn btn-outline btn-sm" onclick="exportarJSON()">Descargar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL HISTORIAL -->
+    <div class="panel" id="panel-historial">
+      <div class="panel-title">📚 Historial de Meses</div>
+      <div id="historialContent"></div>
+    </div>
+
+    <!-- PANEL CALCULOS -->
+    <div class="panel" id="panel-calculos">
+      <div class="panel-title">💰 Calculadora de Remuneraciones</div>
+      <div style="max-width:600px">
+        <div class="form-grid">
+          <div class="field">
+            <label>Sueldo base mensual ($)</label>
+            <input type="number" id="cSueldo" value="539000">
+          </div>
+          <div class="field">
+            <label>Jornada semanal</label>
+            <select id="cJornada">
+              <option value="42">42 horas (2026)</option>
+              <option value="40">40 horas (2028)</option>
+              <option value="44">44 horas (hasta abr 2026)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Horas extras en el mes</label>
+            <input type="number" id="cExtras" value="0" min="0" max="48">
+          </div>
+          <div class="field">
+            <label>Días trabajados en el mes</label>
+            <input type="number" id="cDias" value="22" min="1" max="31">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcularRemun()" style="margin-bottom:24px">Calcular</button>
+        <div id="calcResult"></div>
+      </div>
+    </div>
+
+    <!-- PANEL NORMATIVA -->
+    <div class="panel" id="panel-normativa">
+      <div class="panel-title">⚖️ Normativa Ley 40 Horas 2026</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:900px">
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">📅 Cronograma Gradual</div>
+          <table style="font-size:12px"><tr><td style="padding:4px 0">✅ Abr 2024</td><td style="padding:4px 8px;font-family:var(--mono);font-weight:700">44 h</td><td style="font-size:11px;color:var(--muted)">Completado</td></tr><tr style="background:rgba(184,134,11,.08)"><td style="padding:4px 0">⏰ Abr 2026</td><td style="padding:4px 8px;font-family:var(--mono);font-weight:700">42 h</td><td style="font-size:11px;color:var(--warn)">VIGENTE HOY</td></tr><tr><td style="padding:4px 0">🎯 Abr 2028</td><td style="padding:4px 8px;font-family:var(--mono);font-weight:700">40 h</td><td style="font-size:11px;color:var(--muted)">Meta final</td></tr></table>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">⏰ Horas Extras</div>
+          <ul style="font-size:13px;padding-left:16px;line-height:2;color:var(--slate)">
+            <li>Máx <b>2 h extras/día</b></li>
+            <li>Máx <b>12 h extras/semana</b></li>
+            <li>Máx <b>52 h totales/semana</b></li>
+            <li>Recargo mínimo <b>50%</b> s/hora ordinaria</li>
+            <li>Pacto escrito máx <b>3 meses</b></li>
+            <li>Compensación: 1h extra = 1,5h descanso</li>
+          </ul>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">😴 Descansos</div>
+          <ul style="font-size:13px;padding-left:16px;line-height:2;color:var(--slate)">
+            <li>Mínimo <b>12 h entre jornadas</b></li>
+            <li>Colación mínima <b>30 min</b> (no computable)</li>
+            <li>1 día libre cada <b>6 trabajados</b></li>
+            <li>Comercio: <b>2 domingos libres/mes</b></li>
+            <li>Banda horaria cuidadores: <b>±1 hora</b></li>
+          </ul>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">💰 IMM & Gratificación 2026</div>
+          <ul style="font-size:13px;padding-left:16px;line-height:2;color:var(--slate)">
+            <li>IMM adultos: <b>$539.000</b> (ene 2026)</li>
+            <li>IMM menores/+65: <b>$402.082</b></li>
+            <li>Gratificación Art.50: tope <b>~$213.437/mes</b></li>
+            <li>Gratificación Art.47: 30% utilidades</li>
+          </ul>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">🔒 Resolución 38 DT</div>
+          <ul style="font-size:13px;padding-left:16px;line-height:2;color:var(--slate)">
+            <li>Biometría o dispositivo unívoco</li>
+            <li>Reloj sincronizado con hora oficial Chile</li>
+            <li>Registros inalterables + log auditoría</li>
+            <li>Comprobante email inmediato al trabajador</li>
+            <li>Datos disponibles <b>5 años</b></li>
+          </ul>
+        </div>
+        <div style="border:1px solid var(--line);padding:20px;border-radius:2px">
+          <div style="font-weight:700;color:var(--gold);margin-bottom:12px;font-family:var(--mono);font-size:12px;text-transform:uppercase">🛡️ Guardias (Cond. Especiales)</div>
+          <ul style="font-size:13px;padding-left:16px;line-height:2;color:var(--slate)">
+            <li>Ciclo 4×4 (4 días trabajo / 4 descanso)</li>
+            <li>Máx <b>12 h presencia</b> en puesto</li>
+            <li>Máx <b>11 h trabajo efectivo</b></li>
+            <li>Promedio 42 h/sem en el ciclo</li>
+            <li>Hasta 9 días descanso adicional/año (DS 48)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div><!-- /app -->
+
+<!-- MODAL EMPRESA -->
+<div class="modal-bg" id="modalEmpresa">
+  <div class="modal">
+    <div class="modal-head"><h3>Nueva Empresa</h3><button onclick="closeModal('modalEmpresa')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>Nombre *</label><input id="mENombre" placeholder="Edificio Las Hualtatas" required></div>
+        <div class="field"><label>RUT / ID</label><input id="mERut" placeholder="76.123.456-7"></div>
+        <div class="field"><label>Contacto</label><input id="mEContacto" placeholder="Administrador"></div>
+        <div class="field"><label>Email</label><input id="mEEmail" type="email" placeholder="admin@empresa.cl"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalEmpresa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarEmpresa()">Crear Empresa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRABAJADOR -->
+<div class="modal-bg" id="modalTrabajador">
+  <div class="modal">
+    <div class="modal-head"><h3>Nuevo Trabajador</h3><button onclick="closeModal('modalTrabajador')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label>RUT *</label><input id="mTRut" placeholder="12.345.678-9"></div>
+        <div class="field"><label>Nombre completo *</label><input id="mTNombre" placeholder="Juan Pérez Castro"></div>
+        <div class="field"><label>Cargo *</label>
+          <select id="mTCargo">
+            <option>Conserje</option><option>Nochero</option><option>Guardia</option><option>Aseo</option><option>Otro</option>
+          </select>
+        </div>
+        <div class="field"><label>Renta mensual ($) *</label><input id="mTRenta" type="number" value="539000"></div>
+        <div class="field"><label>Jornada semanal</label>
+          <select id="mTJornada">
+            <option value="42">42 Horas (2026)</option>
+            <option value="40">40 Horas</option>
+            <option value="44">44 Horas</option>
+          </select>
+        </div>
+        <div class="field"><label>Días a la semana</label>
+          <select id="mTDias">
+            <option value="5">5 Días (Lun-Vie)</option>
+            <option value="6">6 Días (incl. Sáb)</option>
+          </select>
+        </div>
+        <div class="field"><label>Preferencia 1</label>
+          <select id="mTPref1"><option value="">Sin preferencia</option><option value="M">Mañana</option><option value="T">Tarde</option><option value="N">Noche</option></select>
+        </div>
+        <div class="field"><label>Preferencia 2</label>
+          <select id="mTPref2"><option value="">Sin preferencia</option><option value="M">Mañana</option><option value="T">Tarde</option><option value="N">Noche</option></select>
+        </div>
+        <div class="field"><label>Ausencia</label>
+          <select id="mTAusenciaTipo"><option value="">Sin ausencia</option><option value="Vacaciones">Vacaciones</option><option value="Licencia">Licencia Médica</option><option value="Permiso">Permiso</option></select>
+        </div>
+        <div class="field"><label>Días de ausencia</label>
+          <input id="mTAusenciaDias" type="number" value="0" min="0" max="31" placeholder="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalTrabajador')">Cancelar</button>
+      <button class="btn btn-primary" onclick="agregarTrabajador()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA (hidden, used for print) -->
+<div id="printArea" style="display:none"></div>
+
+<script>
+// ============================================================
+// CONSTANTES LEGALES 2026
+// ============================================================
+const LEY = {
+  jornadaMax: 42,        // horas semanales desde 26/04/2026
+  extrasMaxDia: 2,
+  extrasMaxSemana: 12,
+  extrasMaxMes: 48,      // conservador
+  descansMinEntre: 12,   // horas entre jornadas
+  recargo: 1.5,          // 50% recargo horas extras
+  imm: 539000,
+  immReducido: 402082,
+  gratTopeMensual: 213437, // 4.75 IMM / 12
+  colacionMin: 30,       // minutos
+};
+
+const TURNOS = {
+  M: { nombre:'Mañana', entrada:'08:00', salida:'15:15', colacion:'12:00', horasEfectivas: 6.75 },
+  T: { nombre:'Tarde',  entrada:'15:00', salida:'22:15', colacion:'18:00', horasEfectivas: 6.75 },
+  N: { nombre:'Noche',  entrada:'22:00', salida:'08:15', colacion:'02:00', horasEfectivas: 9.75 },
+};
+
+const DIAS_SEMANA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  empresas: [],
+  workers: {},      // { empresaId: [worker...] }
+  schedules: {},    // { empresaId_mesKey: result }
+  currentEmpresa: null,
+  lastSchedule: null,
+};
+
+function saveState() {
+  try { localStorage.setItem('gesturnosV2', JSON.stringify(state)); } catch(e){}
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem('gesturnosV2');
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch(e){}
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name.slice(0,4))) b.classList.add('active');
+  });
+  const titles = {
+    empresas:'Empresas', personal:'Personal', turnos:'Optimizador Inteligente de Turnos',
+    reportes:'Reportes y Documentos', historial:'Historial de Meses',
+    calculos:'Calculadora de Remuneraciones', normativa:'Normativa Ley 40 Horas 2026'
+  };
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+
+  if (name === 'empresas') renderEmpresaas();
+  if (name === 'personal') renderPersonal();
+  if (name === 'turnos') initTurnos();
+  if (name === 'historial') renderHistorial();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function globalCompanyChange() {
+  const v = document.getElementById('globalCompanySelect').value;
+  state.currentEmpresa = v ? parseInt(v) : null;
+  saveState();
+  renderPersonal();
+}
+
+function updateGlobalSelect() {
+  const sel = document.getElementById('globalCompanySelect');
+  sel.innerHTML = '<option value="">— Empresa —</option>' +
+    state.empresas.map(e => `<option value="${e.id}" ${e.id === state.currentEmpresa?'selected':''}>${e.nombre}</option>`).join('');
+}
+
+// ============================================================
+// EMPRESAS
+// ============================================================
+function agregarEmpresa() {
+  const nombre = document.getElementById('mENombre').value.trim();
+  if (!nombre) { alert('Ingresa el nombre de la empresa'); return; }
+  const emp = {
+    id: Date.now(),
+    nombre,
+    rut: document.getElementById('mERut').value,
+    contacto: document.getElementById('mEContacto').value,
+    email: document.getElementById('mEEmail').value,
+    creado: new Date().toLocaleDateString('es-CL'),
+  };
+  state.empresas.push(emp);
+  state.workers[emp.id] = [];
+  state.currentEmpresa = emp.id;
+  saveState();
+  closeModal('modalEmpresa');
+  document.getElementById('mENombre').value = '';
+  renderEmpresaas();
+  updateGlobalSelect();
+}
+
+function eliminarEmpresa(id) {
+  if (!confirm('¿Eliminar empresa y TODOS sus datos?')) return;
+  state.empresas = state.empresas.filter(e => e.id !== id);
+  delete state.workers[id];
+  if (state.currentEmpresa === id) state.currentEmpresa = null;
+  saveState();
+  renderEmpresaas();
+  updateGlobalSelect();
+}
+
+function renderEmpresaas() {
+  const tb = document.getElementById('tbEmpresaas');
+  if (!state.empresas.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">No hay empresas. Crea una para comenzar.</td></tr>';
+    return;
+  }
+  tb.innerHTML = state.empresas.map(e => `
+    <tr>
+      <td><strong>${e.nombre}</strong></td>
+      <td class="td-mono">${e.rut||'-'}</td>
+      <td>${e.contacto||'-'}</td>
+      <td>${(state.workers[e.id]||[]).length} trabajadores</td>
+      <td class="td-mono" style="font-size:11px">${e.creado}</td>
+      <td>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" onclick="seleccionarEmpresa(${e.id})">Abrir</button>
+          <button class="btn btn-rust btn-sm" onclick="eliminarEmpresa(${e.id})">Eliminar</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function seleccionarEmpresa(id) {
+  state.currentEmpresa = id;
+  saveState();
+  updateGlobalSelect();
+  showPanel('personal');
+}
+
+// ============================================================
+// TRABAJADORES
+// ============================================================
+function agregarTrabajador() {
+  if (!state.currentEmpresa) { alert('Selecciona una empresa primero'); return; }
+  const rut = document.getElementById('mTRut').value.trim();
+  const nombre = document.getElementById('mTNombre').value.trim();
+  if (!rut || !nombre) { alert('RUT y nombre son requeridos'); return; }
+
+  const w = {
+    id: Date.now(),
+    rut, nombre,
+    cargo: document.getElementById('mTCargo').value,
+    renta: parseFloat(document.getElementById('mTRenta').value) || LEY.imm,
+    jornada: parseInt(document.getElementById('mTJornada').value),
+    dias: parseInt(document.getElementById('mTDias').value),
+    pref1: document.getElementById('mTPref1').value,
+    pref2: document.getElementById('mTPref2').value,
+    ausenciaTipo: document.getElementById('mTAusenciaTipo').value,
+    ausenciaDias: parseInt(document.getElementById('mTAusenciaDias').value) || 0,
+  };
+
+  if (!state.workers[state.currentEmpresa]) state.workers[state.currentEmpresa] = [];
+  state.workers[state.currentEmpresa].push(w);
+  saveState();
+  closeModal('modalTrabajador');
+  ['mTRut','mTNombre'].forEach(id => document.getElementById(id).value = '');
+  renderPersonal();
+}
+
+function eliminarTrabajador(id) {
+  if (!confirm('¿Eliminar trabajador?')) return;
+  state.workers[state.currentEmpresa] = state.workers[state.currentEmpresa].filter(w => w.id !== id);
+  saveState();
+  renderPersonal();
+}
+
+function renderPersonal() {
+  const tb = document.getElementById('tbPersonal');
+  const emp = state.currentEmpresa ? state.empresas.find(e => e.id === state.currentEmpresa) : null;
+  document.getElementById('pageSubtitle').textContent = emp ? emp.nombre : 'Selecciona empresa en el menú superior';
+
+  const ws = state.currentEmpresa ? (state.workers[state.currentEmpresa] || []) : [];
+  if (!ws.length) {
+    tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--muted)">${state.currentEmpresa?'Sin trabajadores. Agrega el primero.':'Selecciona una empresa.'}</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = ws.map(w => {
+    const ausencia = w.ausenciaTipo ? `<span class="badge badge-warn">${w.ausenciaTipo} ${w.ausenciaDias}d</span>` : '-';
+    return `<tr>
+      <td class="td-mono">${w.rut}</td>
+      <td><strong>${w.nombre}</strong></td>
+      <td><span class="badge badge-muted">${w.cargo}</span></td>
+      <td class="td-mono">$${w.renta.toLocaleString('es-CL')}</td>
+      <td class="td-mono">${w.jornada}h</td>
+      <td>${w.dias}d</td>
+      <td><span class="chip ${w.pref1||''}">${w.pref1||'-'}</span></td>
+      <td><span class="chip ${w.pref2||''}">${w.pref2||'-'}</span></td>
+      <td>${ausencia}</td>
+      <td><button class="btn btn-rust btn-sm" onclick="eliminarTrabajador(${w.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function importarEjemplo() {
+  if (!state.currentEmpresa) {
+    // Crear empresa de ejemplo
+    const emp = { id: Date.now(), nombre:'Edificio Las Hualtatas', rut:'76.123.456-7', contacto:'Administrador', email:'admin@hualtatas.cl', creado: new Date().toLocaleDateString('es-CL') };
+    state.empresas.push(emp);
+    state.currentEmpresa = emp.id;
+    state.workers[emp.id] = [];
+    updateGlobalSelect();
+  }
+  const ejemplos = [
+    { id:1001, rut:'12.222.456-3', nombre:'Juan Pérez Castro',          cargo:'Conserje', renta:530000, jornada:42, dias:5, pref1:'M', pref2:'T', ausenciaTipo:'Vacaciones', ausenciaDias:5  },
+    { id:1002, rut:'13.333.234-1', nombre:'Pedro González Escobar',     cargo:'Conserje', renta:535000, jornada:42, dias:5, pref1:'M', pref2:'T', ausenciaTipo:'', ausenciaDias:0  },
+    { id:1003, rut:'11.122.456-4', nombre:'Juana Andrade Silva',        cargo:'Nochero',  renta:540000, jornada:42, dias:5, pref1:'T', pref2:'M', ausenciaTipo:'Licencia', ausenciaDias:7  },
+    { id:1004, rut:'17.773.234-2', nombre:'Sebastián Vargas Carvajal',  cargo:'Nochero',  renta:545000, jornada:40, dias:5, pref1:'T', pref2:'M', ausenciaTipo:'', ausenciaDias:0  },
+    { id:1005, rut:'18.877.323-4', nombre:'María Soto Espinoza',        cargo:'Nochero',  renta:550000, jornada:40, dias:6, pref1:'N', pref2:'T', ausenciaTipo:'', ausenciaDias:0  },
+    { id:1006, rut:'10.033.234-1', nombre:'Tomás Morales Peralta',      cargo:'Conserje', renta:555000, jornada:42, dias:5, pref1:'M', pref2:'T', ausenciaTipo:'', ausenciaDias:0  },
+    { id:1007, rut:'11.120.056-4', nombre:'Isabel Peña Vega',           cargo:'Nochero',  renta:560000, jornada:42, dias:5, pref1:'T', pref2:'N', ausenciaTipo:'', ausenciaDias:0  },
+  ];
+  state.workers[state.currentEmpresa] = ejemplos;
+  saveState();
+  renderPersonal();
+}
+
+// ============================================================
+// SCHEDULER ENGINE (legal, real)
+// ============================================================
+function initTurnos() {
+  const emp = state.currentEmpresa ? state.empresas.find(e => e.id === state.currentEmpresa) : null;
+  document.getElementById('pageSubtitle').textContent = emp ? emp.nombre : '';
+  // Precargar próximo mes
+  const next = new Date();
+  next.setMonth(next.getMonth() + 1);
+  const mesInput = document.getElementById('mesTurnos');
+  if (!mesInput.value) {
+    mesInput.value = next.toISOString().slice(0,7);
+  }
+  document.getElementById('topbarMes').textContent = mesInput.value;
+}
+
+function generarTurnos() {
+  if (!state.currentEmpresa) { alert('Selecciona empresa'); return; }
+  const ws = state.workers[state.currentEmpresa] || [];
+  if (!ws.length) { alert('No hay trabajadores'); return; }
+
+  const mesVal = document.getElementById('mesTurnos').value;
+  if (!mesVal) { alert('Selecciona el mes'); return; }
+  document.getElementById('topbarMes').textContent = mesVal;
+
+  const [year, month] = mesVal.split('-').map(Number);
+  const turnos = [];
+  if (document.getElementById('ckM').checked) turnos.push('M');
+  if (document.getElementById('ckT').checked) turnos.push('T');
+  if (document.getElementById('ckN').checked) turnos.push('N');
+  if (!turnos.length) { alert('Selecciona al menos un turno'); return; }
+
+  const result = scheduleMonth(ws, year, month, turnos);
+  state.lastSchedule = { ...result, mesVal, empresaId: state.currentEmpresa };
+  renderSchedule(result, ws, year, month);
+}
+
+function scheduleMonth(workers, year, month, turnosCodes) {
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  // Inicializar contadores por trabajador
+  const wstate = {};
+  workers.forEach(w => {
+    wstate[w.id] = {
+      horasAsignadas: 0,
+      diasAsignados: 0,
+      diasConsecutivos: 0,
+      ultimoTurno: null,
+      ultimoUltimaHora: null,  // hora de salida del último turno (para validar 12h)
+      asignaciones: {},        // { day: turno }
+      horasExtras: 0,
+    };
+  });
+
+  const diasAsignaciones = {}; // { day: { M:workerId, T:workerId, N:workerId } }
+  const gaps = [];
+
+  // Calcular horas ordinarias mensuales permitidas
+  function horasOrdinariasPermitidas(w) {
+    const semanas = daysInMonth / 7;
+    return w.jornada * semanas;
+  }
+
+  // Verificar si un trabajador puede trabajar un turno en un día
+  function puedeTrabajar(w, ws, day, turno, dayOfWeek) {
+    const wst = wstate[w.id];
+    const T = TURNOS[turno];
+
+    // Ausencia
+    if (w.ausenciaTipo && w.ausenciaDias > 0) {
+      // Bloquear los primeros N días del mes
+      if (day <= w.ausenciaDias) return false;
+    }
+
+    // Domingo y jornada de 5 días — no trabaja
+    if (dayOfWeek === 0 && w.dias === 5) return false;
+    // Sábado y jornada de 5 días — no trabaja
+    if (dayOfWeek === 6 && w.dias === 5) return false;
+
+    // Ya tiene turno ese día
+    if (wst.asignaciones[day]) return false;
+
+    // Máximo 6 días consecutivos
+    if (wst.diasConsecutivos >= 6) return false;
+
+    // Verificar descanso mínimo 12h entre jornadas
+    if (wst.ultimoUltimaHora !== null) {
+      const entradaH = horaToDecimal(T.entrada);
+      const diff = entradaH - wst.ultimoUltimaHora;
+      // Si el turno noche termina al día siguiente
+      const adjustedDiff = diff < 0 ? diff + 24 : diff;
+      if (adjustedDiff < LEY.descansMinEntre) return false;
+    }
+
+    // Horas legales: no exceder jornada + máx extras
+    const horasOrd = horasOrdinariasPermitidas(w);
+    const maxTotal = horasOrd + LEY.extrasMaxMes;
+    if (wst.horasAsignadas + T.horasEfectivas > maxTotal) return false;
+
+    return true;
+  }
+
+  function horaToDecimal(h) {
+    const [hh,mm] = h.split(':').map(Number);
+    return hh + mm/60;
+  }
+
+  function horaSalida(turno) {
+    const T = TURNOS[turno];
+    let sal = horaToDecimal(T.salida);
+    if (turno === 'N') sal += 24; // sale al día siguiente
+    return sal;
+  }
+
+  // Seleccionar mejor trabajador para un turno en un día
+  function elegirTrabajador(day, turno, dayOfWeek) {
+    const candidatos = workers.filter(w => puedeTrabajar(w, wstate[w.id], day, turno, dayOfWeek));
+    if (!candidatos.length) return null;
+
+    // Scoring: preferencia + menos horas acumuladas
+    return candidatos.sort((a, b) => {
+      let scoreA = 0, scoreB = 0;
+      if (a.pref1 === turno) scoreA += 3;
+      if (a.pref2 === turno) scoreA += 1;
+      if (b.pref1 === turno) scoreB += 3;
+      if (b.pref2 === turno) scoreB += 1;
+      // Equidad: priorizar quien tiene menos horas
+      scoreA -= wstate[a.id].horasAsignadas / 10;
+      scoreB -= wstate[b.id].horasAsignadas / 10;
+      return scoreB - scoreA;
+    })[0];
+  }
+
+  // Recorrer cada día del mes
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    diasAsignaciones[day] = {};
+
+    // Reset días consecutivos si fue día libre
+    workers.forEach(w => {
+      const wst = wstate[w.id];
+      if (!wst.asignaciones[day - 1] && day > 1) {
+        wst.diasConsecutivos = 0;
+        wst.ultimoUltimaHora = null;
+      }
+    });
+
+    turnosCodes.forEach(turno => {
+      const trabajador = elegirTrabajador(day, turno, dayOfWeek);
+      if (trabajador) {
+        const T = TURNOS[turno];
+        wstate[trabajador.id].asignaciones[day] = turno;
+        wstate[trabajador.id].horasAsignadas += T.horasEfectivas;
+        wstate[trabajador.id].diasAsignados++;
+        wstate[trabajador.id].diasConsecutivos++;
+        wstate[trabajador.id].ultimoUltimaHora = horaSalida(turno);
+        diasAsignaciones[day][turno] = trabajador.id;
+      } else {
+        // Gap detectado
+        if (dayOfWeek !== 0) { // no contar domingos como gap
+          gaps.push({ day, turno, dayOfWeek });
+        }
+      }
+    });
+  }
+
+  // Calcular horas extras por trabajador
+  workers.forEach(w => {
+    const wst = wstate[w.id];
+    const horasOrd = horasOrdinariasPermitidas(w);
+    wst.horasExtras = Math.max(0, wst.horasAsignadas - horasOrd);
+  });
+
+  // Análisis de cobertura
+  const totalSlotsDia = turnosCodes.length;
+  const diasConCobertura = Object.values(diasAsignaciones).filter(d => Object.keys(d).length === totalSlotsDia).length;
+  const coberturaPct = Math.round(diasConCobertura / daysInMonth * 100);
+
+  return { wstate, diasAsignaciones, gaps, coberturaPct, daysInMonth, turnosCodes };
+}
+
+function horasOrdinariasPermitidas(w, daysInMonth) {
+  const semanas = (daysInMonth || 30) / 7;
+  return w.jornada * semanas;
+}
+
+// ============================================================
+// RENDER RESULTADO TURNOS
+// ============================================================
+function renderSchedule(result, workers, year, month) {
+  const { wstate, diasAsignaciones, gaps, coberturaPct, daysInMonth, turnosCodes } = result;
+  let html = '';
+
+  // Stats
+  const totalHorasExtras = workers.reduce((acc, w) => acc + wstate[w.id].horasExtras, 0);
+  const conExtras = workers.filter(w => wstate[w.id].horasExtras > 0);
+
+  html += `<div class="stats-row">
+    <div class="stat ${coberturaPct===100?'ok':coberturaPct>80?'':'danger'}">
+      <div class="stat-val">${coberturaPct}%</div>
+      <div class="stat-lbl">Cobertura total</div>
+    </div>
+    <div class="stat ${gaps.length?'danger':'ok'}">
+      <div class="stat-val">${gaps.length}</div>
+      <div class="stat-lbl">Turnos sin cubrir</div>
+    </div>
+    <div class="stat ${totalHorasExtras>0?'danger':'ok'}">
+      <div class="stat-val">${totalHorasExtras.toFixed(1)}h</div>
+      <div class="stat-lbl">Horas extras totales</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">${conExtras.length}</div>
+      <div class="stat-lbl">Trabaj. con extras</div>
+    </div>
+  </div>`;
+
+  // Alerts
+  if (gaps.length) {
+    const dias = [...new Set(gaps.map(g => g.day))];
+    html += `<div class="alert alert-danger">
+      ⚠️ <strong>${gaps.length} turno(s) sin cobertura</strong> en días: ${dias.join(', ')} —
+      Considera contratar personal adicional o autorizar horas extras.
+    </div>`;
+  }
+  if (coberturaPct === 100) {
+    html += `<div class="alert alert-ok">✅ Cobertura completa del mes con el personal disponible.</div>`;
+  }
+  if (totalHorasExtras > 0) {
+    const costoExtras = workers.reduce((acc, w) => {
+      if (wstate[w.id].horasExtras > 0) {
+        const valorHoraOrd = w.renta / 30 / (w.jornada / 5);
+        return acc + wstate[w.id].horasExtras * valorHoraOrd * LEY.recargo;
+      }
+      return acc;
+    }, 0);
+    html += `<div class="alert alert-warn">
+      ⏰ <strong>Horas extras detectadas.</strong> Costo estimado total: <strong>$${Math.round(costoExtras).toLocaleString('es-CL')}</strong>.
+      Se requieren Pactos de Horas Extras escritos (máx 3 meses).
+    </div>`;
+  }
+
+  // Grilla calendaria
+  html += `<h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Calendario de Turnos — ${mesLabel(year,month)}</h3>`;
+  html += `<div class="cal-grid" id="calGrid">`;
+
+  // Cabeceras: nombre + días
+  html += `<div class="cal-header" style="min-width:140px">Trabajador</div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dow = new Date(year, month-1, d).getDay();
+    const isDom = dow === 0;
+    html += `<div class="cal-header" style="${isDom?'background:#2d1010':''}">
+      <div>${DIAS_SEMANA[dow].slice(0,2)}</div>
+      <div>${d}</div>
+    </div>`;
+  }
+
+  // Filas por trabajador
+  workers.forEach(w => {
+    const wst = wstate[w.id];
+    html += `<div class="cal-worker">${w.nombre.split(' ').slice(0,2).join(' ')}</div>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dow = new Date(year, month-1, d).getDay();
+      const turno = wst.asignaciones[d];
+      // Verificar si está en ausencia
+      const enAusencia = w.ausenciaTipo && w.ausenciaDias > 0 && d <= w.ausenciaDias;
+      let cls = '', lbl = '';
+      if (enAusencia) { cls = 'fuera'; lbl = w.ausenciaTipo.slice(0,3); }
+      else if (!turno && dow === 0) { cls = 'dom'; lbl = 'Dom'; }
+      else if (!turno) { cls = 'libre'; lbl = '—'; }
+      else { cls = turno; lbl = turno; }
+      html += `<div class="cal-cell ${cls}">${lbl}</div>`;
+    }
+  });
+
+  html += `</div>`;
+
+  // Tabla detalle por trabajador
+  html += `<h3 style="margin:24px 0 12px;font-size:14px;font-weight:700">Detalle por Trabajador</h3>`;
+  html += `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Trabajador</th><th>Días Asignados</th><th>Horas Totales</th>
+      <th>Horas Ord.</th><th>Horas Extras</th><th>Costo Extras</th><th>Pago Extras ($)</th>
+    </tr></thead><tbody>`;
+
+  workers.forEach(w => {
+    const wst = wstate[w.id];
+    const horasOrd = horasOrdinariasPermitidas(w, daysInMonth);
+    const extras = wst.horasExtras;
+    const valorHoraOrd = w.renta / 30 / (w.jornada / 5);
+    const costoExtras = extras > 0 ? extras * valorHoraOrd * LEY.recargo : 0;
+    html += `<tr>
+      <td><strong>${w.nombre}</strong><br><span style="font-size:11px;color:var(--muted)">${w.cargo}</span></td>
+      <td class="td-mono">${wst.diasAsignados}</td>
+      <td class="td-mono">${wst.horasAsignadas.toFixed(1)}h</td>
+      <td class="td-mono">${horasOrd.toFixed(1)}h</td>
+      <td class="td-mono" style="color:${extras>0?'var(--rust)':'var(--success)'}">${extras.toFixed(1)}h</td>
+      <td>${extras > 0 ? `<span class="badge badge-danger">Requiere Pacto</span>` : '<span class="badge badge-ok">OK</span>'}</td>
+      <td class="td-mono" style="color:${extras>0?'var(--rust)':'var(--muted)'}">${extras>0?'$'+Math.round(costoExtras).toLocaleString('es-CL'):'-'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table></div>`;
+
+  // Turnos sin cubrir detalle
+  if (gaps.length) {
+    html += `<h3 style="margin:24px 0 12px;font-size:14px;font-weight:700;color:var(--rust)">⚠️ Turnos Sin Cobertura</h3>`;
+    html += `<div class="table-wrap"><table><thead><tr><th>Día</th><th>Día Semana</th><th>Turno</th><th>Recomendación</th></tr></thead><tbody>`;
+    gaps.forEach(g => {
+      html += `<tr>
+        <td>${g.day}</td>
+        <td>${DIAS_SEMANA[g.dayOfWeek]}</td>
+        <td><span class="chip ${g.turno}">${TURNOS[g.turno].nombre}</span></td>
+        <td style="font-size:12px;color:var(--muted)">Asignar horas extras o contratar reemplazante</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+
+  document.getElementById('turnResult').innerHTML = html;
+}
+
+function mesLabel(year, month) {
+  return new Date(year, month-1, 1).toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+}
+
+// ============================================================
+// IA ENGINE — Claude API
+// ============================================================
+async function analizarConIA() {
+  if (!state.lastSchedule) { alert('Genera los turnos primero'); return; }
+  if (!state.currentEmpresa) { alert('Selecciona empresa'); return; }
+
+  const btn = document.getElementById('btnIA');
+  btn.classList.add('loading');
+  btn.textContent = '✦ Analizando...';
+
+  const emp = state.empresas.find(e => e.id === state.currentEmpresa);
+  const ws = state.workers[state.currentEmpresa] || [];
+  const { wstate, gaps, coberturaPct, daysInMonth, turnosCodes } = state.lastSchedule;
+
+  // Construir contexto para IA
+  const contexto = {
+    empresa: emp?.nombre,
+    mes: state.lastSchedule.mesVal,
+    coberturaPct,
+    turnosSeleccionados: turnosCodes,
+    gapsCount: gaps.length,
+    gapsDias: [...new Set(gaps.map(g => g.day))],
+    trabajadores: ws.map(w => ({
+      nombre: w.nombre,
+      cargo: w.cargo,
+      jornada: w.jornada,
+      dias: w.dias,
+      pref1: w.pref1,
+      pref2: w.pref2,
+      ausencia: w.ausenciaTipo ? `${w.ausenciaTipo} ${w.ausenciaDias}d` : 'ninguna',
+      renta: w.renta,
+      horasAsignadas: wstate[w.id].horasAsignadas.toFixed(1),
+      horasExtras: wstate[w.id].horasExtras.toFixed(1),
+      diasAsignados: wstate[w.id].diasAsignados,
+    })),
+    leyVigente: 'Ley 21.561 (40 Horas), jornada máx 42h/sem desde 26/04/2026, máx 2h extras/día, 12h/semana, descanso mín 12h entre jornadas, IMM $539.000',
+  };
+
+  const box = document.getElementById('iaBox');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="ai-box"><h4>✦ Analizando con IA<span class="ai-streaming">...</span></h4><p>Procesando ${ws.length} trabajadores, ${daysInMonth} días del mes...</p></div>`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Eres un experto en legislación laboral chilena (Ley 21.561 / Ley 40 Horas 2026) y optimización de turnos de trabajo. 
+Analiza la programación de turnos y entrega recomendaciones concretas, accionables y legalmente válidas.
+Responde SOLO con JSON con esta estructura exacta:
+{
+  "diagnostico": "string (2-3 oraciones sobre el estado general)",
+  "alertasLegales": ["lista de problemas legales detectados"],
+  "recomendaciones": ["lista de recomendaciones priorizadas, con datos concretos"],
+  "costoVsContratacion": "string (análisis costo-beneficio horas extras vs contratar)",
+  "optimizacionHorarios": "string (propuestas concretas de ajuste de turnos)"
+}
+No incluyas texto fuera del JSON.`,
+        messages: [{ role: 'user', content: `Analiza esta programación de turnos:\n${JSON.stringify(contexto, null, 2)}` }],
+      }),
+    });
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '{}';
+    let analisis;
+    try {
+      analisis = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch {
+      analisis = { diagnostico: text, alertasLegales: [], recomendaciones: [], costoVsContratacion: '', optimizacionHorarios: '' };
+    }
+
+    let iaHtml = `<div class="ai-box">
+      <h4>✦ Análisis de Inteligencia Artificial — ${emp?.nombre} · ${state.lastSchedule.mesVal}</h4>`;
+
+    iaHtml += `<div class="ai-section"><strong style="color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:1px">Diagnóstico General</strong><p style="margin-top:8px">${analisis.diagnostico}</p></div>`;
+
+    if (analisis.alertasLegales?.length) {
+      iaHtml += `<div class="ai-section"><strong style="color:#fc8181;font-size:12px;text-transform:uppercase;letter-spacing:1px">⚠️ Alertas Legales</strong><ul style="margin-top:8px">`;
+      analisis.alertasLegales.forEach(a => { iaHtml += `<li>${a}</li>`; });
+      iaHtml += `</ul></div>`;
+    }
+
+    if (analisis.recomendaciones?.length) {
+      iaHtml += `<div class="ai-section"><strong style="color:#68d391;font-size:12px;text-transform:uppercase;letter-spacing:1px">💡 Recomendaciones</strong><ul style="margin-top:8px">`;
+      analisis.recomendaciones.forEach(r => { iaHtml += `<li style="margin-bottom:6px">${r}</li>`; });
+      iaHtml += `</ul></div>`;
+    }
+
+    if (analisis.costoVsContratacion) {
+      iaHtml += `<div class="ai-section"><strong style="color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:1px">📊 Costo Extras vs. Contratar</strong><p style="margin-top:8px">${analisis.costoVsContratacion}</p></div>`;
+    }
+
+    if (analisis.optimizacionHorarios) {
+      iaHtml += `<div class="ai-section"><strong style="color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:1px">🔧 Optimización de Horarios</strong><p style="margin-top:8px">${analisis.optimizacionHorarios}</p></div>`;
+    }
+
+    iaHtml += `</div>`;
+    box.innerHTML = iaHtml;
+
+  } catch (err) {
+    box.innerHTML = `<div class="alert alert-warn">Error al conectar con IA: ${err.message}. Verifica tu conexión.</div>`;
+  }
+
+  btn.classList.remove('loading');
+  btn.textContent = '✦ Re-analizar con IA';
+}
+
+// ============================================================
+// GUARDAR MES
+// ============================================================
+function guardarMes() {
+  if (!state.lastSchedule) { alert('Genera los turnos primero'); return; }
+  const key = `${state.currentEmpresa}_${state.lastSchedule.mesVal}`;
+  if (!state.schedules) state.schedules = {};
+  state.schedules[key] = {
+    ...state.lastSchedule,
+    savedAt: new Date().toISOString(),
+    workers: state.workers[state.currentEmpresa],
+  };
+  saveState();
+  alert(`Mes ${state.lastSchedule.mesVal} guardado correctamente.`);
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorial() {
+  const content = document.getElementById('historialContent');
+  if (!state.schedules || !Object.keys(state.schedules).length) {
+    content.innerHTML = '<p style="color:var(--muted)">No hay meses guardados aún. Genera y guarda turnos desde el panel de Turnos IA.</p>';
+    return;
+  }
+  let html = '<div class="table-wrap"><table><thead><tr><th>Empresa</th><th>Mes</th><th>Guardado</th><th>Cobertura</th><th></th></tr></thead><tbody>';
+  Object.entries(state.schedules).forEach(([key, sc]) => {
+    const emp = state.empresas.find(e => e.id === sc.empresaId);
+    html += `<tr>
+      <td>${emp?.nombre || sc.empresaId}</td>
+      <td class="td-mono">${sc.mesVal}</td>
+      <td class="td-mono" style="font-size:11px">${new Date(sc.savedAt).toLocaleDateString('es-CL')}</td>
+      <td><span class="badge ${sc.coberturaPct===100?'badge-ok':'badge-warn'}">${sc.coberturaPct}%</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="cargarHistorial('${key}')">Ver</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  content.innerHTML = html;
+}
+
+function cargarHistorial(key) {
+  const sc = state.schedules[key];
+  if (!sc) return;
+  state.currentEmpresa = sc.empresaId;
+  state.lastSchedule = sc;
+  updateGlobalSelect();
+  showPanel('turnos');
+  document.getElementById('mesTurnos').value = sc.mesVal;
+  renderSchedule(sc, sc.workers, ...sc.mesVal.split('-').map(Number));
+}
+
+// ============================================================
+// CALCULADORA
+// ============================================================
+function calcularRemun() {
+  const sueldo = parseFloat(document.getElementById('cSueldo').value);
+  const jornada = parseInt(document.getElementById('cJornada').value);
+  const extras = parseFloat(document.getElementById('cExtras').value) || 0;
+  const dias = parseInt(document.getElementById('cDias').value) || 22;
+
+  // Valor hora ordinaria: sueldo / 30 * días_semana / horas_semana
+  const valorHoraOrd = sueldo / 30 * (jornada / 5) / (jornada / 5);
+  // Fórmula correcta: sueldo mensual / (jornada semanal * 4.33)
+  const valorHoraOrd2 = sueldo / (jornada * 4.33);
+  const valorHoraExtra = valorHoraOrd2 * LEY.recargo;
+  const pagoExtras = extras * valorHoraExtra;
+  const gratificacion = Math.min(sueldo * 0.25, LEY.gratTopeMensual);
+  const totalLiquido = sueldo + pagoExtras;
+
+  // Alertas legales
+  let alertas = [];
+  if (extras > LEY.extrasMaxMes) alertas.push(`⚠️ ${extras}h extras exceden el máximo mensual estimado (${LEY.extrasMaxMes}h).`);
+  if (extras > 0 && extras <= LEY.extrasMaxMes) alertas.push(`✓ Horas extras dentro del límite legal. Se requiere Pacto Escrito.`);
+
+  document.getElementById('calcResult').innerHTML = `
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val">$${Math.round(valorHoraOrd2).toLocaleString('es-CL')}</div><div class="stat-lbl">Valor Hora Ordinaria</div></div>
+      <div class="stat"><div class="stat-val">$${Math.round(valorHoraExtra).toLocaleString('es-CL')}</div><div class="stat-lbl">Valor Hora Extra (+50%)</div></div>
+      <div class="stat"><div class="stat-val">$${Math.round(pagoExtras).toLocaleString('es-CL')}</div><div class="stat-lbl">Pago Horas Extras</div></div>
+      <div class="stat ok"><div class="stat-val">$${Math.round(totalLiquido).toLocaleString('es-CL')}</div><div class="stat-lbl">Total Bruto Mes</div></div>
+      <div class="stat"><div class="stat-val">$${Math.round(gratificacion).toLocaleString('es-CL')}</div><div class="stat-lbl">Gratificación Art.50</div></div>
+    </div>
+    ${alertas.map(a => `<div class="alert ${a.startsWith('⚠️')?'alert-warn':'alert-ok'}">${a}</div>`).join('')}
+    <div style="background:var(--surface);border:1px solid var(--line);padding:16px;border-radius:2px;font-family:var(--mono);font-size:12px;color:var(--muted)">
+      Fórmula jornada ${jornada}h: Valor hora = $${sueldo.toLocaleString('es-CL')} ÷ (${jornada} × 4.33) = $${Math.round(valorHoraOrd2).toLocaleString('es-CL')} | Extra = × 1.5 = $${Math.round(valorHoraExtra).toLocaleString('es-CL')}
+    </div>
+  `;
+}
+
+// ============================================================
+// DOCUMENTOS IMPRIMIBLES
+// ============================================================
+function imprimirResumen() {
+  if (!state.lastSchedule) { alert('Genera y guarda los turnos primero'); return; }
+  const emp = state.empresas.find(e => e.id === state.currentEmpresa);
+  const ws = state.workers[state.currentEmpresa] || [];
+  const { wstate, daysInMonth, coberturaPct, gaps } = state.lastSchedule;
+  const mesVal = state.lastSchedule.mesVal;
+  const [year, month] = mesVal.split('-').map(Number);
+
+  let doc = `<div class="print-doc">
+    <h1>RESUMEN MENSUAL DE TURNOS</h1>
+    <p><strong>Empresa:</strong> ${emp?.nombre} &nbsp;|&nbsp; <strong>Mes:</strong> ${mesLabel(year,month)} &nbsp;|&nbsp; <strong>Cobertura:</strong> ${coberturaPct}%</p>
+    <p><strong>Régimen:</strong> Ley 21.561 — Jornada máxima 42 horas semanales (vigente desde 26/04/2026)</p>
+    <table><thead><tr><th>Trabajador</th><th>Cargo</th><th>Jornada</th><th>Días Asig.</th><th>Horas Tot.</th><th>Horas Ord.</th><th>Horas Extras</th><th>Pago Extras</th></tr></thead><tbody>`;
+
+  ws.forEach(w => {
+    const wst = wstate[w.id];
+    const horasOrd = horasOrdinariasPermitidas(w, daysInMonth).toFixed(1);
+    const extras = wst.horasExtras.toFixed(1);
+    const valorHoraOrd = w.renta / (w.jornada * 4.33);
+    const pagoExtras = wst.horasExtras > 0 ? '$' + Math.round(wst.horasExtras * valorHoraOrd * LEY.recargo).toLocaleString('es-CL') : '-';
+    doc += `<tr><td>${w.nombre}</td><td>${w.cargo}</td><td>${w.jornada}h</td><td>${wst.diasAsignados}</td><td>${wst.horasAsignadas.toFixed(1)}</td><td>${horasOrd}</td><td>${extras}</td><td>${pagoExtras}</td></tr>`;
+  });
+
+  if (gaps.length) {
+    doc += `<tr><td colspan="8" style="color:red;font-weight:bold">⚠️ ${gaps.length} turno(s) sin cobertura en días: ${[...new Set(gaps.map(g=>g.day))].join(', ')}</td></tr>`;
+  }
+
+  doc += `</tbody></table>
+    <p style="margin-top:20px;font-size:10px;color:#666">Generado por GesturnoS · ${new Date().toLocaleDateString('es-CL')} · Conforme a Ley 21.561 (Ley 40 Horas)</p>
+  </div>`;
+
+  printDoc(doc);
+}
+
+function imprimirAvisos() {
+  if (!state.lastSchedule) { alert('Genera los turnos primero'); return; }
+  const emp = state.empresas.find(e => e.id === state.currentEmpresa);
+  const ws = state.workers[state.currentEmpresa] || [];
+  const { wstate, daysInMonth } = state.lastSchedule;
+  const mesVal = state.lastSchedule.mesVal;
+  const [year, month] = mesVal.split('-').map(Number);
+  const hoy = new Date().toLocaleDateString('es-CL');
+
+  let doc = '';
+  ws.forEach(w => {
+    const wst = wstate[w.id];
+    // Construir lista de días y turnos
+    const asignRows = Object.entries(wst.asignaciones).sort((a,b)=>a[0]-b[0]).map(([d, t]) => {
+      const T = TURNOS[t];
+      const dow = new Date(year, month-1, parseInt(d)).getDay();
+      return `<tr><td>${DIAS_SEMANA[dow]} ${d}</td><td>${T.nombre}</td><td>${T.entrada}</td><td>${T.colacion}–${addMinutes(T.colacion,30)}</td><td>${T.salida}</td></tr>`;
+    }).join('');
+
+    doc += `<div class="print-doc" style="page-break-after:always">
+      <h1>AVISO DE PROGRAMACIÓN MENSUAL</h1>
+      <p>Santiago, ${hoy}</p>
+      <p><strong>Empresa:</strong> ${emp?.nombre}</p>
+      <p><strong>Trabajador:</strong> ${w.nombre} &nbsp;|&nbsp; <strong>RUT:</strong> ${w.rut} &nbsp;|&nbsp; <strong>Cargo:</strong> ${w.cargo}</p>
+      <p><strong>Período:</strong> ${mesLabel(year,month)} &nbsp;|&nbsp; <strong>Jornada:</strong> ${w.jornada} horas semanales (Ley 21.561)</p>
+      <p>Por medio del presente documento, se le informa su programación de turnos para el mes indicado:</p>
+      <table><thead><tr><th>Fecha</th><th>Turno</th><th>Entrada</th><th>Colación</th><th>Salida</th></tr></thead>
+      <tbody>${asignRows}</tbody></table>
+      <p>Total días asignados: <strong>${wst.diasAsignados}</strong> &nbsp;|&nbsp; Horas totales: <strong>${wst.horasAsignadas.toFixed(1)}</strong></p>
+      <div class="firma-block">
+        <div><div class="firma-line">Empleador / Administrador</div></div>
+        <div><div class="firma-line">Trabajador — Firma y Fecha</div></div>
+      </div>
+    </div>`;
+  });
+
+  printDoc(doc);
+}
+
+function imprimirPactos() {
+  if (!state.lastSchedule) { alert('Genera los turnos primero'); return; }
+  const emp = state.empresas.find(e => e.id === state.currentEmpresa);
+  const ws = state.workers[state.currentEmpresa] || [];
+  const { wstate, daysInMonth } = state.lastSchedule;
+  const mesVal = state.lastSchedule.mesVal;
+  const [year, month] = mesVal.split('-').map(Number);
+  const hoy = new Date().toLocaleDateString('es-CL');
+
+  const conExtras = ws.filter(w => wstate[w.id].horasExtras > 0);
+  if (!conExtras.length) { alert('No hay trabajadores con horas extras para este mes.'); return; }
+
+  let doc = '';
+  conExtras.forEach(w => {
+    const wst = wstate[w.id];
+    const horasExtras = wst.horasExtras.toFixed(1);
+    const valorHoraOrd = w.renta / (w.jornada * 4.33);
+    const valorHoraExtra = Math.round(valorHoraOrd * LEY.recargo);
+    const pagoTotal = Math.round(wst.horasExtras * valorHoraOrd * LEY.recargo);
+
+    doc += `<div class="print-doc" style="page-break-after:always">
+      <h1>PACTO DE HORAS EXTRAORDINARIAS</h1>
+      <p>En Santiago, a ${hoy}, entre:</p>
+      <p><strong>EMPLEADOR:</strong> ${emp?.nombre}, en adelante "el Empleador"</p>
+      <p><strong>TRABAJADOR:</strong> ${w.nombre}, RUT ${w.rut}, cargo ${w.cargo}, en adelante "el Trabajador"</p>
+      <p><strong>Se pacta lo siguiente:</strong></p>
+      <p>1. Las partes acuerdan la realización de horas extraordinarias durante el mes de <strong>${mesLabel(year,month)}</strong>, conforme al artículo 32 del Código del Trabajo.</p>
+      <p>2. El Trabajador realizará un máximo de <strong>${horasExtras} horas extraordinarias</strong> en el período, distribuidas según necesidades operacionales.</p>
+      <p>3. El valor de cada hora extraordinaria es de <strong>$${valorHoraExtra.toLocaleString('es-CL')}</strong> (recargo 50% sobre hora ordinaria de $${Math.round(valorHoraOrd).toLocaleString('es-CL')}).</p>
+      <p>4. El pago estimado total por horas extras es de <strong>$${pagoTotal.toLocaleString('es-CL')}</strong>.</p>
+      <p>5. Este pacto tiene vigencia por <strong>3 meses</strong> desde la fecha de suscripción, renovable por acuerdo de partes.</p>
+      <p>6. La jornada ordinaria del Trabajador es de <strong>${w.jornada} horas semanales</strong>, conforme a la Ley N° 21.561.</p>
+      <p>7. En ningún caso la suma de jornada ordinaria y extraordinaria podrá exceder 52 horas semanales.</p>
+      <div class="firma-block" style="margin-top:50px">
+        <div><div class="firma-line">Empleador</div><div style="font-size:10px;margin-top:4px">${emp?.nombre}</div></div>
+        <div><div class="firma-line">Trabajador — Firma</div><div style="font-size:10px;margin-top:4px">${w.nombre} · RUT ${w.rut}</div></div>
+      </div>
+    </div>`;
+  });
+
+  printDoc(doc);
+}
+
+function addMinutes(time, mins) {
+  const [h, m] = time.split(':').map(Number);
+  const total = h * 60 + m + mins;
+  return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`;
+}
+
+function printDoc(html) {
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      body{font-family:Arial,sans-serif;font-size:12px;color:#000;padding:20px}
+      h1{font-size:16px;margin-bottom:8px}
+      p{margin-bottom:6px;line-height:1.5}
+      table{width:100%;border-collapse:collapse;margin:12px 0}
+      th,td{border:1px solid #999;padding:6px;font-size:11px}
+      th{background:#eee;font-weight:bold}
+      .firma-block{display:flex;gap:80px;margin-top:50px}
+      .firma-line{border-top:1px solid #000;padding-top:4px;width:220px;font-size:10px}
+      @media print{body{padding:0}}
+    </style></head><body>${html}</body></html>`);
+  w.document.close();
+  setTimeout(() => w.print(), 500);
+}
+
+function exportarJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `gesturnost-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  updateGlobalSelect();
+  showPanel('empresas');
+
+  // Fijamos nav activo manual
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+});
+</script>
+</body>
+</html>
