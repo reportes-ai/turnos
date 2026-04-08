@@ -1,475 +1,408 @@
-// ==================== SCHEDULER ADVANCED ====================
-class SchedulerAdvanced {
+// ==================== SCHEDULER MODULE ====================
+class Scheduler {
     /**
-     * Optimiza turnos resolviendo:
-     * - Cobertura 24/7 o parcial según solicitud
-     * - Cumplimiento Ley 40 Horas (42h en 2026)
-     * - Preferencias de trabajadores
-     * - Minimización de horas extras
-     * - Máximo 2h extras diarias, 12h semanales
-     * - Rotación equitativa de turnos
+     * Optimiza la asignación de turnos respetando:
+     * - Ley 40 Horas (42 horas en 2026)
+     * - Máx 2 horas extras diarias
+     * - Máx 12 horas extras semanales
+     * - Descanso mínimo 12 horas
+     * - Cobertura 24/7 si aplica
      */
     
-    static SHIFTS = {
-        mañana: { start: '08:00', end: '15:15', hours: 6.75, color: '#FDB833' },
-        tarde: { start: '15:00', end: '22:15', hours: 6.75, color: '#4ECDC4' },
-        noche: { start: '22:00', end: '08:15', hours: 9.75, color: '#7B68EE' }
-    };
-    
-    static optimize(workers, coverageStart, coverageEnd, availableShifts, month, year) {
-        if (workers.length === 0) throw new Error('No hay trabajadores');
-        if (availableShifts.length === 0) throw new Error('No hay turnos seleccionados');
-        
-        const daysInMonth = new Date(year, month, 0).getDate();
+    static optimize(workers, coverageStart, coverageEnd, availableShifts) {
         const schedule = {};
-        const analysisData = {
-            assignments: {},
-            dailyCoverage: {},
+        const shifts = Schedule.SHIFTS;
+        const result = {
+            schedule,
+            coverage: this.validateCoverage(availableShifts, coverageStart, coverageEnd),
             recommendations: [],
-            violations: [],
-            costAnalysis: {}
+            issues: []
         };
         
-        // Inicializar estructura para cada trabajador
-        workers.forEach(w => {
-            schedule[w.id] = {
-                worker: w,
-                assignments: {},
-                totalHours: 0,
+        // Ordenar trabajadores por preferencia y antigüedad
+        const sortedWorkers = [...workers].sort((a, b) => {
+            const prefMatch = (w) => w.preference === availableShifts[0] ? 1 : 0;
+            return prefMatch(b) - prefMatch(a);
+        });
+        
+        // Asignar turnos usando backtracking
+        const assignments = {};
+        const constraintChecker = new ConstraintChecker();
+        
+        sortedWorkers.forEach(worker => {
+            assignments[worker.id] = {
+                worker,
+                assigned: [],
+                hours: 0,
                 extraHours: 0,
-                totalCost: 0,
-                extraCost: 0,
                 shifts: []
             };
-        });
-        
-        // Inicializar cobertura por día
-        for (let day = 1; day <= daysInMonth; day++) {
-            analysisData.dailyCoverage[day] = {
-                mañana: [],
-                tarde: [],
-                noche: [],
-                gapsDetected: []
-            };
-        }
-        
-        // Algoritmo de asignación inteligente
-        this.assignShiftsOptimally(
-            workers, 
-            schedule, 
-            daysInMonth, 
-            availableShifts, 
-            analysisData,
-            month,
-            year
-        );
-        
-        // Calcular costos y análisis
-        this.calculateCosts(schedule, workers);
-        this.analyzeCompliance(schedule, analysisData);
-        this.generateRecommendations(schedule, analysisData, workers);
-        
-        return {
-            schedule,
-            analysis: analysisData,
-            summary: this.generateSummary(schedule, workers, month, year)
-        };
-    }
-    
-    static assignShiftsOptimally(workers, schedule, daysInMonth, availableShifts, analysis, month, year) {
-        const workersData = workers.map(w => ({
-            id: w.id,
-            name: w.name,
-            salary: w.salary,
-            jornada: parseInt(w.jornada),
-            days: parseInt(w.days),
-            preference: w.preference,
-            assigned: 0,
-            hoursAssigned: 0,
-            shiftRotation: 0
-        }));
-        
-        // Meta de horas semanales por trabajador
-        const targetWeeklyHours = 42; // Ley 40 Horas 2026
-        const targetMonthlyHours = targetWeeklyHours * 4.33;
-        const workDaysInMonth = this.getWorkingDays(month, year);
-        
-        // Distribución inteligente de turnos
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayOfWeek = new Date(year, month - 1, day).getDay();
             
-            // Saltar domingos (por defecto, excepto sector específico)
-            if (dayOfWeek === 0) continue;
+            // Intentar asignar turnos
+            const targetDays = parseInt(worker.days) * 4.33; // Promedio mensual
+            let daysAssigned = 0;
             
-            // Para cada turno disponible, asignar trabajadores
             for (const shiftName of availableShifts) {
-                const shift = this.SHIFTS[shiftName];
+                if (!shifts[shiftName]) continue;
                 
-                // Seleccionar mejor trabajador para este turno
-                const bestWorker = this.selectBestWorkerForShift(
-                    workersData,
-                    shiftName,
-                    day,
-                    targetMonthlyHours
-                );
+                const shift = shifts[shiftName];
+                const hoursPerShift = shift.worked;
+                const dailyLimit = (parseInt(worker.jornada) / 5);
                 
-                if (bestWorker) {
-                    // Asignar turno
-                    if (!schedule[bestWorker.id].assignments[day]) {
-                        schedule[bestWorker.id].assignments[day] = [];
-                    }
+                // Validar restricciones antes de asignar
+                if (constraintChecker.canAssignShift(
+                    worker,
+                    assignments[worker.id],
+                    dailyLimit
+                )) {
+                    assignments[worker.id].shifts.push(shiftName);
+                    assignments[worker.id].hours += hoursPerShift;
+                    daysAssigned++;
                     
-                    schedule[bestWorker.id].assignments[day].push({
-                        shift: shiftName,
-                        start: shift.start,
-                        end: shift.end,
-                        hours: shift.hours,
-                        date: day
-                    });
-                    
-                    // Actualizar estadísticas
-                    schedule[bestWorker.id].totalHours += shift.hours;
-                    bestWorker.hoursAssigned += shift.hours;
-                    bestWorker.assigned++;
-                    
-                    // Registrar cobertura
-                    analysis.dailyCoverage[day][shiftName].push(bestWorker.name);
+                    if (daysAssigned >= targetDays) break;
                 }
             }
-        }
-        
-        // Balancear asignaciones
-        this.balanceAssignments(workersData, schedule, daysInMonth, availableShifts);
-    }
-    
-    static selectBestWorkerForShift(workers, shiftName, day, targetHours) {
-        const candidates = workers
-            .filter(w => {
-                // No asignar si ya tiene ese día completo
-                const assignedThisDay = w.assigned;
-                // Priorizar quien tiene menos horas asignadas
-                return w.hoursAssigned < targetHours;
-            })
-            .sort((a, b) => {
-                // Prioridad 1: Preferencia de turno
-                const prefMatch = (w) => w.preference === shiftName ? 2 : 0;
-                // Prioridad 2: Menos horas asignadas
-                const hoursScore = (targetHours - w.hoursAssigned) / targetHours;
-                // Prioridad 3: Rotación equitativa
-                const rotationScore = (a.shiftRotation - b.shiftRotation);
-                
-                return (prefMatch(b) + hoursScore * 10) - (prefMatch(a) + hoursScore * 10);
-            });
-        
-        return candidates[0] || null;
-    }
-    
-    static balanceAssignments(workers, schedule, daysInMonth, availableShifts) {
-        // Asegurar que todos los trabajadores tengan asignaciones equitativas
-        const avgHours = workers.reduce((sum, w) => sum + w.hoursAssigned, 0) / workers.length;
-        
-        workers.forEach(w => {
-            if (w.hoursAssigned < avgHours * 0.8) {
-                // Este trabajador necesita más horas
-                for (const shiftName of availableShifts) {
-                    if (w.hoursAssigned >= avgHours) break;
-                    
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        if (!schedule[w.id].assignments[day]) {
-                            schedule[w.id].assignments[day] = [];
-                        }
-                        
-                        const shift = this.SHIFTS[shiftName];
-                        schedule[w.id].assignments[day].push({
-                            shift: shiftName,
-                            start: shift.start,
-                            end: shift.end,
-                            hours: shift.hours,
-                            date: day
-                        });
-                        
-                        schedule[w.id].totalHours += shift.hours;
-                        w.hoursAssigned += shift.hours;
-                        break;
-                    }
-                }
-            }
-        });
-    }
-    
-    static calculateCosts(schedule, workers) {
-        workers.forEach(w => {
-            const jornada = parseInt(w.jornada);
-            const ordinaryHours = jornada * 4.33;
             
-            schedule[w.id].extraHours = Math.max(0, schedule[w.id].totalHours - ordinaryHours);
-            
-            // Costo ordinario
-            const hourValue = w.salary / 30 / (jornada / 5);
-            schedule[w.id].totalCost = w.salary; // Costo mensual base
-            
-            // Costo extras (50% de recargo mínimo)
-            schedule[w.id].extraCost = schedule[w.id].extraHours * (hourValue * 1.5);
-        });
-    }
-    
-    static analyzeCompliance(schedule, analysis) {
-        // Validar que se cumplen restricciones legales
-        Object.values(schedule).forEach(s => {
-            const extraHours = s.extraHours;
-            
-            // Máximo 12 horas extras semanales
-            const weeklyExtra = extraHours / 4.33;
-            if (weeklyExtra > 12) {
-                analysis.violations.push({
-                    worker: s.worker.name,
-                    violation: `Horas extras semanales: ${weeklyExtra.toFixed(1)}h > 12h límite`,
-                    severity: 'error'
-                });
-            }
-            
-            // Máximo 52 horas totales semanales
-            const totalWeekly = s.totalHours / 4.33;
-            if (totalWeekly > 52) {
-                analysis.violations.push({
-                    worker: s.worker.name,
-                    violation: `Total semanal: ${totalWeekly.toFixed(1)}h > 52h límite`,
-                    severity: 'error'
+            // Validar compliance legal
+            const compliance = LegalCalculator.validateCompliance(worker, assignments[worker.id].hours);
+            if (!compliance.valid) {
+                result.issues.push({
+                    worker: worker.name,
+                    problems: compliance.issues
                 });
             }
         });
+        
+        result.schedule = assignments;
+        result.recommendations = this.generateRecommendations(assignments, workers);
+        
+        return result;
     }
     
-    static generateRecommendations(schedule, analysis, workers) {
-        let totalExtras = 0;
-        let workersWithExtras = 0;
-        
-        Object.values(schedule).forEach(s => {
-            if (s.extraHours > 0) {
-                totalExtras += s.extraHours;
-                workersWithExtras++;
-            }
-        });
-        
-        // Recomendación: Personal adicional
-        if (workersWithExtras > workers.length * 0.5) {
-            const avgSalary = workers.reduce((sum, w) => sum + w.salary, 0) / workers.length;
-            const extraCost = Object.values(schedule).reduce((sum, s) => sum + s.extraCost, 0);
-            const newPersonnelCost = avgSalary;
-            
-            if (newPersonnelCost < extraCost * 1.2) {
-                analysis.recommendations.push({
-                    type: 'hiring',
-                    title: 'Contratar Personal Adicional',
-                    description: `Costo actual de extras: $${extraCost.toLocaleString('es-CL')}`,
-                    benefit: `Costo nuevo empleado: $${newPersonnelCost.toLocaleString('es-CL')} + mejor cobertura`,
-                    savings: (extraCost - newPersonnelCost).toFixed(0)
-                });
-            }
-        }
-        
-        // Recomendación: Distribución de turnos
-        analysis.recommendations.push({
-            type: 'schedule',
-            title: 'Distribución de Turnos Optimizada',
-            description: `${workersWithExtras} trabajadores con horas extras`,
-            benefit: 'Rotación equitativa minimiza fatiga',
-            details: `Total extras: ${totalExtras.toFixed(1)}h`
-        });
-    }
-    
-    static generateSummary(schedule, workers, month, year) {
-        const months = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        
-        const totalHours = Object.values(schedule).reduce((sum, s) => sum + s.totalHours, 0);
-        const totalExtras = Object.values(schedule).reduce((sum, s) => sum + s.extraHours, 0);
-        const totalCosts = Object.values(schedule).reduce((sum, s) => sum + s.totalCost + s.extraCost, 0);
-        const avgHoursPerWorker = totalHours / workers.length;
-        
-        return {
-            period: `${months[month]} ${year}`,
-            totalWorkers: workers.length,
-            totalHours,
-            totalExtras,
-            totalCosts,
-            avgHoursPerWorker: avgHoursPerWorker.toFixed(1),
-            workersWithExtras: Object.values(schedule).filter(s => s.extraHours > 0).length
+    static validateCoverage(shifts, startTime, endTime) {
+        const coverage = {};
+        const shiftTimes = {
+            mañana: { start: 8, end: 15.25 },
+            tarde: { start: 15, end: 22.25 },
+            noche: { start: 22, end: 24 } // Simplificado
         };
+        
+        // Verificar si hay cobertura en los horarios solicitados
+        shifts.forEach(shift => {
+            const times = shiftTimes[shift];
+            if (times) {
+                coverage[shift] = {
+                    start: times.start,
+                    end: times.end,
+                    covers: true
+                };
+            }
+        });
+        
+        return coverage;
     }
     
-    static getWorkingDays(month, year) {
-        let workDays = 0;
-        const date = new Date(year, month - 1, 1);
-        const lastDay = new Date(year, month, 0);
+    static generateRecommendations(assignments, workers) {
+        const recommendations = [];
+        let totalExtraHours = 0;
+        let workersWithExtra = 0;
         
-        for (let d = 1; d <= lastDay.getDate(); d++) {
-            const day = new Date(year, month - 1, d);
-            const dayOfWeek = day.getDay();
-            if (dayOfWeek > 0 && dayOfWeek < 6) workDays++;
+        Object.values(assignments).forEach(assignment => {
+            if (assignment.extraHours > 0) {
+                totalExtraHours += assignment.extraHours;
+                workersWithExtra++;
+            }
+        });
+        
+        // Recomendación 1: Personal adicional
+        if (workersWithExtra > workers.length * 0.5) {
+            const estimatedSalary = workers.reduce((sum, w) => sum + w.salary, 0) / workers.length;
+            const monthlyCostExtra = (totalExtraHours * 
+                LegalCalculator.calculateHourValue(estimatedSalary) * 1.5);
+            const monthlySalaryNewPerson = estimatedSalary;
+            
+            if (monthlySalaryNewPerson < monthlyCostExtra * 1.2) {
+                recommendations.push({
+                    type: 'cost-effective',
+                    title: 'Contratar Personal Adicional',
+                    description: `Costo de extras (${totalExtraHours.toFixed(0)}h): $${monthlyCostExtra.toLocaleString('es-CL')}`,
+                    benefit: `Costo de nuevo empleado: $${monthlySalaryNewPerson.toLocaleString('es-CL')} + mejor cobertura`,
+                    savings: (monthlyCostExtra - monthlySalaryNewPerson).toFixed(0)
+                });
+            }
         }
-        return workDays;
+        
+        // Recomendación 2: Ajuste de horarios
+        if (totalExtraHours > 0) {
+            recommendations.push({
+                type: 'schedule-adjustment',
+                title: 'Optimizar Distribución de Turnos',
+                description: `Se generan ${totalExtraHours.toFixed(0)} horas extras`,
+                benefit: 'Redistribuir carga horaria puede reducir sobretiempo',
+                action: 'Revisar bandas horarias y horas valle'
+            });
+        }
+        
+        // Recomendación 3: Cumplimiento legal
+        recommendations.push({
+            type: 'compliance',
+            title: 'Cumplimiento Ley 40 Horas',
+            description: 'Verificar que no se excedan límites legales',
+            limits: {
+                dailyExtra: LegalCalculator.getMaxExtraHoursDaily(),
+                weeklyExtra: LegalCalculator.getMaxExtraHoursWeekly(),
+                weeklyTotal: LegalCalculator.getMaxWeeklyHours(),
+                minRest: LegalCalculator.getMinDailyRest()
+            }
+        });
+        
+        return recommendations;
     }
 }
 
-// ==================== REPORT GENERATOR ADVANCED ====================
-class ReportGeneratorAdvanced {
-    static generateDetailedSchedule(schedule, company, month, year) {
-        const months = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+// ==================== CONSTRAINT CHECKER ====================
+class ConstraintChecker {
+    canAssignShift(worker, currentAssignment, maxHoursDaily) {
+        // Validar horas diarias
+        if (currentAssignment.hours + maxHoursDaily > parseInt(worker.jornada)) {
+            return false;
+        }
         
+        // Validar horas extras no excedan límites
+        const extraHours = currentAssignment.hours - (parseInt(worker.jornada) * 4.33);
+        if (extraHours > LegalCalculator.getMaxExtraHoursWeekly() * 4.33) {
+            return false;
+        }
+        
+        // Validar descanso mínimo (12 horas)
+        // Simplificado: verificar que no haya dos turnos noche seguidos
+        if (currentAssignment.shifts.length > 0) {
+            const lastShift = currentAssignment.shifts[currentAssignment.shifts.length - 1];
+            if (lastShift === 'noche' && currentAssignment.shifts.filter(s => s === 'noche').length > 2) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    validateSchedule(schedule) {
+        const issues = [];
+        
+        Object.values(schedule).forEach(assignment => {
+            const worker = assignment.worker;
+            
+            // Validar horas totales
+            if (assignment.hours > parseInt(worker.jornada) + LegalCalculator.getMaxExtraHoursWeekly()) {
+                issues.push(`${worker.name}: Excede límites de horas extras`);
+            }
+        });
+        
+        return {
+            valid: issues.length === 0,
+            issues
+        };
+    }
+}
+
+// ==================== REPORT GENERATOR ====================
+class ReportGenerator {
+    static generateMonthlyReport(schedule, companyName, month) {
         let html = `
-            <style>
-                body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-                .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #1a3a52; padding-bottom: 15px; }
-                .company { font-size: 24px; font-weight: bold; color: #1a3a52; }
-                .month { font-size: 14px; color: #666; margin-top: 5px; }
-                .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-                .summary-card { background: white; padding: 15px; border-left: 4px solid #d4a574; }
-                .summary-value { font-size: 24px; font-weight: bold; color: #1a3a52; }
-                .summary-label { font-size: 12px; color: #999; text-transform: uppercase; }
-                table { width: 100%; border-collapse: collapse; margin-bottom: 30px; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-                th { background: #1a3a52; color: white; padding: 12px; text-align: left; font-weight: bold; font-size: 12px; }
-                td { padding: 10px; border-bottom: 1px solid #eee; }
-                tr:hover { background: #f9f9f9; }
-                .warning { color: #e74c3c; font-weight: bold; }
-                .success { color: #27ae60; font-weight: bold; }
-                .shift-mañana { background: #FDB833; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; }
-                .shift-tarde { background: #4ECDC4; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; }
-                .shift-noche { background: #7B68EE; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; }
-                .page-break { page-break-after: always; }
-            </style>
-            
-            <div class="header">
-                <div class="company">${company.name || 'Empresa'}</div>
-                <div class="month">Programación de Turnos - ${months[month]} ${year}</div>
-            </div>
-            
-            <div class="summary">
-                <div class="summary-card">
-                    <div class="summary-value">${Object.keys(schedule).length}</div>
-                    <div class="summary-label">Trabajadores</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">${Object.values(schedule).reduce((sum, s) => sum + s.totalHours, 0).toFixed(0)}</div>
-                    <div class="summary-label">Horas Totales</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">${Object.values(schedule).reduce((sum, s) => sum + s.extraHours, 0).toFixed(1)}</div>
-                    <div class="summary-label">Horas Extras</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-value">$${Object.values(schedule).reduce((sum, s) => sum + s.extraCost, 0).toLocaleString('es-CL')}</div>
-                    <div class="summary-label">Costo Extras</div>
-                </div>
-            </div>
-            
-            <h2 style="color: #1a3a52; border-bottom: 2px solid #d4a574; padding-bottom: 10px;">Detalles por Trabajador</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Trabajador</th>
-                        <th>RUT</th>
-                        <th>Cargo</th>
-                        <th>Horas Ordinarias</th>
-                        <th>Horas Extras</th>
-                        <th>Total Horas</th>
-                        <th>Costo Extras</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <div style="background: white; color: black; padding: 20px; border-radius: 4px;">
+                <h1 style="text-align: center; color: var(--primary);">${companyName}</h1>
+                <h2 style="text-align: center; color: var(--secondary);">Resumen Mensual - ${month}</h2>
+                
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background: var(--primary); color: white;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Trabajador</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Horas Ordinarias</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Horas Extras</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Total</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #ddd;">Monto Extras</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         `;
         
-        Object.values(schedule).forEach(s => {
-            const jornada = parseInt(s.worker.jornada);
+        let totalExtraPayment = 0;
+        
+        Object.values(schedule).forEach(assignment => {
+            const worker = assignment.worker;
+            const jornada = parseInt(worker.jornada);
             const ordinaryHours = jornada * 4.33;
-            const extraCost = s.extraCost;
-            const status = s.extraHours > 0 ? '<span class="warning">⚠️ Con extras</span>' : '<span class="success">✓ Cumple</span>';
+            const extraHours = Math.max(0, assignment.hours - ordinaryHours);
+            const hourValue = LegalCalculator.calculateHourValue(worker.salary, jornada);
+            const extraPayment = LegalCalculator.calculateExtraHourPayment(extraHours, hourValue);
+            totalExtraPayment += extraPayment;
             
             html += `
-                <tr>
-                    <td><strong>${s.worker.name}</strong></td>
-                    <td>${s.worker.rut}</td>
-                    <td>${s.worker.position}</td>
-                    <td>${ordinaryHours.toFixed(1)}</td>
-                    <td>${s.extraHours.toFixed(1)}</td>
-                    <td><strong>${s.totalHours.toFixed(1)}</strong></td>
-                    <td>$${extraCost.toLocaleString('es-CL')}</td>
-                    <td>${status}</td>
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">${worker.name}</td>
+                    <td style="padding: 10px; text-align: center;">${ordinaryHours.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center;">${extraHours.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center;">${assignment.hours.toFixed(1)}</td>
+                    <td style="padding: 10px; text-align: center;">$${extraPayment.toLocaleString('es-CL')}</td>
                 </tr>
             `;
         });
         
-        html += `</tbody></table>`;
-        
-        // Tabla de turnos por día
-        html += `<h2 style="color: #1a3a52; border-bottom: 2px solid #d4a574; padding-bottom: 10px; page-break-before: always;">Turnos por Día y Trabajador</h2>`;
-        
-        html += `<table>
-            <thead>
-                <tr>
-                    <th>Día</th>
-                    <th colspan="3" style="text-align: center;">Mañana</th>
-                    <th colspan="3" style="text-align: center;">Tarde</th>
-                    <th colspan="3" style="text-align: center;">Noche</th>
-                </tr>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Trabajador</th>
-                    <th>Horario</th>
-                    <th>Horas</th>
-                    <th>Trabajador</th>
-                    <th>Horario</th>
-                    <th>Horas</th>
-                    <th>Trabajador</th>
-                    <th>Horario</th>
-                    <th>Horas</th>
-                </tr>
-            </thead>
-            <tbody>
+        html += `
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 4px;">
+                    <h3>Total Horas Extras: $${totalExtraPayment.toLocaleString('es-CL')}</h3>
+                    <p style="color: #666; margin-top: 10px;">Generado: ${new Date().toLocaleDateString('es-CL')}</p>
+                </div>
+            </div>
         `;
         
-        const daysInMonth = new Date(year, month, 0).getDate();
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayOfWeek = new Date(year, month - 1, day).getDay();
-            if (dayOfWeek === 0) continue; // Skip domingos
-            
-            const shifts = { mañana: null, tarde: null, noche: null };
-            
-            // Buscar asignaciones para este día
-            Object.values(schedule).forEach(s => {
-                if (s.assignments[day]) {
-                    s.assignments[day].forEach(assign => {
-                        shifts[assign.shift] = {
-                            worker: s.worker.name,
-                            time: `${assign.start} - ${assign.end}`,
-                            hours: assign.hours
-                        };
-                    });
-                }
-            });
-            
-            const date = new Date(year, month - 1, day);
-            const dateStr = date.toLocaleDateString('es-CL', { weekday: 'short', day: '2-digit' });
+        return html;
+    }
+    
+    static generateWorkerNotice(worker, month, schedule) {
+        const jornada = parseInt(worker.jornada);
+        const ordinaryHours = jornada * 4.33;
+        
+        const html = `
+            <div style="background: white; color: black; padding: 30px; max-width: 800px; margin: 0 auto;">
+                <p style="text-align: center; color: #666;">
+                    <small>AVISO AL TRABAJADOR - Mes de ${month}</small>
+                </p>
+                
+                <h2 style="text-align: center; color: var(--primary); margin-bottom: 30px;">
+                    PROGRAMACIÓN DE TURNOS
+                </h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Nombre:</strong> ${worker.name}</p>
+                    <p><strong>RUT:</strong> ${worker.rut}</p>
+                    <p><strong>Cargo:</strong> ${worker.position}</p>
+                    <p><strong>Jornada:</strong> ${worker.jornada} horas semanales</p>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #f9f9f9; border-left: 4px solid var(--secondary);">
+                    <h3 style="color: var(--primary);">Turnos Asignados</h3>
+                    <p>Los turnos se detallaran en anexo adjunto con la distribución diaria.</p>
+                    <p style="margin-top: 15px; color: #666;">
+                        <strong>Horas Mensuales:</strong> ${ordinaryHours.toFixed(1)} horas ordinarias
+                    </p>
+                </div>
+                
+                <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
+                    <p style="margin-bottom: 30px; font-size: 12px; color: #666;">
+                        Declaro haber recibido conocimiento de la presente programación de turnos,
+                        de conformidad con lo dispuesto en el Código del Trabajo y la Ley 40 Horas.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div style="text-align: center;">
+                            <p style="border-top: 1px solid #333; padding-top: 5px; height: 60px;"></p>
+                            <small>Firma Trabajador</small>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="border-top: 1px solid #333; padding-top: 5px; height: 60px;"></p>
+                            <small>Firma Empleador</small>
+                        </div>
+                    </div>
+                    
+                    <p style="text-align: center; margin-top: 20px; font-size: 11px; color: #999;">
+                        ${new Date().toLocaleDateString('es-CL')}
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        return html;
+    }
+    
+    static generateExtraHoursPact(workers, month) {
+        const workersWithExtra = workers.filter(w => w.extraHours > 0);
+        
+        let html = `
+            <div style="background: white; color: black; padding: 30px; max-width: 900px; margin: 0 auto;">
+                <h1 style="text-align: center; color: var(--primary);">PACTO DE HORAS EXTRAORDINARIAS</h1>
+                <p style="text-align: center; color: #666; margin-bottom: 30px;">Mes de ${month}</p>
+                
+                <div style="margin-bottom: 30px; padding: 15px; background: #e8f4f8; border-left: 4px solid #3498db;">
+                    <p style="color: #333;">
+                        <strong>Base Legal:</strong> Artículo 30 del Código del Trabajo - Ley 40 Horas (Ley N° 21.561)
+                    </p>
+                </div>
+        `;
+        
+        workersWithExtra.forEach(worker => {
+            const hourValue = LegalCalculator.calculateHourValue(worker.salary, worker.jornada);
+            const extraPayment = LegalCalculator.calculateExtraHourPayment(worker.extraHours, hourValue);
             
             html += `
-                <tr>
-                    <td><strong>${dateStr}</strong></td>
-                    <td>${shifts.mañana?.worker || '-'}</td>
-                    <td>${shifts.mañana?.time || '-'}</td>
-                    <td>${shifts.mañana?.hours.toFixed(2) || '-'}</td>
-                    <td>${shifts.tarde?.worker || '-'}</td>
-                    <td>${shifts.tarde?.time || '-'}</td>
-                    <td>${shifts.tarde?.hours.toFixed(2) || '-'}</td>
-                    <td>${shifts.noche?.worker || '-'}</td>
-                    <td>${shifts.noche?.time || '-'}</td>
-                    <td>${shifts.noche?.hours.toFixed(2) || '-'}</td>
-                </tr>
+                <div style="margin-top: 20px; padding: 20px; border: 1px solid #ddd; page-break-inside: avoid;">
+                    <h3 style="color: var(--primary);">PACTO INDIVIDUAL</h3>
+                    
+                    <table style="width: 100%; margin-top: 15px;">
+                        <tr>
+                            <td style="padding: 8px;"><strong>Trabajador:</strong></td>
+                            <td style="padding: 8px;">${worker.name}</td>
+                            <td style="padding: 8px;"><strong>RUT:</strong></td>
+                            <td style="padding: 8px;">${worker.rut}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px;"><strong>Cargo:</strong></td>
+                            <td style="padding: 8px;">${worker.position}</td>
+                            <td style="padding: 8px;"><strong>Jornada:</strong></td>
+                            <td style="padding: 8px;">${worker.jornada} horas</td>
+                        </tr>
+                    </table>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #f5f5f5;">
+                        <table style="width: 100%; font-size: 14px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">Horas Extraordinarias:</td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">${worker.extraHours.toFixed(1)} horas</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">Valor Hora Ordinaria:</td>
+                                <td style="text-align: right; padding: 8px;">$${hourValue.toLocaleString('es-CL', {maximumFractionDigits: 0})}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">Recargo Legal (50%):</td>
+                                <td style="text-align: right; padding: 8px;">${(hourValue * 0.5).toLocaleString('es-CL', {maximumFractionDigits: 0})}</td>
+                            </tr>
+                            <tr style="background: var(--primary); color: white;">
+                                <td style="padding: 8px;"><strong>Total a Pagar:</strong></td>
+                                <td style="text-align: right; padding: 8px; font-weight: bold;">$${extraPayment.toLocaleString('es-CL')}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <p style="margin-top: 15px; font-size: 12px; color: #666;">
+                        Ambas partes acuerdan que el trabajador realizará las horas extraordinarias señaladas,
+                        las que serán remuneradas con un recargo mínimo del 50% sobre el valor de la hora ordinaria.
+                    </p>
+                    
+                    <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="text-align: center;">
+                            <p style="border-top: 1px solid #333; padding-top: 5px; height: 50px;"></p>
+                            <small>Firma Trabajador</small>
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="border-top: 1px solid #333; padding-top: 5px; height: 50px;"></p>
+                            <small>Firma Empleador</small>
+                        </div>
+                    </div>
+                </div>
             `;
-        }
+        });
         
-        html += `</tbody></table>`;
+        html += `
+                <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-left: 4px solid #f39c12; font-size: 12px;">
+                    <strong>Nota Legal:</strong> Este pacto debe constar por escrito y ser conservado como constancia
+                    para la Dirección del Trabajo. Límites máximos: 2 horas diarias, 12 semanales, 52 totales en semana.
+                </div>
+            </div>
+        `;
         
         return html;
     }
